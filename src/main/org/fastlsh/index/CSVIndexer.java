@@ -37,7 +37,7 @@ public class CSVIndexer {
             String line = "";
             while((line = reader.readLine()) != null)
             {
-                indexer.indexVector(line);
+                indexer.indexVector(line.trim());
             }
             
             

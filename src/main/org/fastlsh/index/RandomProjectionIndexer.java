@@ -27,7 +27,7 @@ import org.fastlsh.util.BitSetWithId;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 
-public class RandomProjectionIndexer<T> implements Closeable
+public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 {
 	private ObjectOutputStream rawStream;
 	private ObjectOutputStream sigStream;
@@ -57,7 +57,8 @@ public class RandomProjectionIndexer<T> implements Closeable
 
         alg = new Algebra();
 	}
-
+	
+	@Override
 	public void setParser(VectorParser<T> parser) {
 		this.parser = parser;
 	}
@@ -74,7 +75,8 @@ public class RandomProjectionIndexer<T> implements Closeable
 			}
 		}
 	}
-
+	
+	@Override
 	public void indexVector(T vec) throws IOException {
 		indexVector(parser.parse(vec));
 	}
