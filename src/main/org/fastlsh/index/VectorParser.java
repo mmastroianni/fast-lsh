@@ -16,7 +16,7 @@
 package org.fastlsh.index;
 
 
-public interface VectorParser
+public interface VectorParser<T>
 {
-    public VectorWithId parse(String line);
+    public VectorWithId parse(T vector);
 }

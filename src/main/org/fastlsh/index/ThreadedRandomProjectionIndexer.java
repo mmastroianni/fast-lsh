@@ -89,7 +89,7 @@ public class ThreadedRandomProjectionIndexer
         int numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         int vecLen = Integer.parseInt(cmd.getOptionValue("d"));
         final HashFamily family = new HashFamily(HashFactory.makeProjectionHashFamily(vecLen, numHashes));
-        final VectorParser parser = new CSVParser(cmd.getOptionValue("sep"));
+        final VectorParser<String> parser = new CSVParser(cmd.getOptionValue("sep"));
         BufferedReader reader = null;
         final int batchSize = Integer.parseInt(cmd.getOptionValue("b"));
         int numThreads = Integer.parseInt(cmd.getOptionValue("t", defaultThreads));
@@ -111,11 +111,11 @@ public class ThreadedRandomProjectionIndexer
                 curList.add(line.trim());
                 if(curList.size() == batchSize)
                 {
-                    pool.execute(new IndexerTask(vecWriters, sigWriters, alg, curList, parser,family));
+                    pool.execute(new IndexerTask<String>(vecWriters, sigWriters, alg, curList, parser,family));
                     curList = new ArrayList<String>();
                 }
             }
-            if(curList.size() != 0) pool.execute(new IndexerTask(vecWriters, sigWriters, alg, curList, parser,family));
+            if(curList.size() != 0) pool.execute(new IndexerTask<String>(vecWriters, sigWriters, alg, curList, parser,family));
 
             
         }

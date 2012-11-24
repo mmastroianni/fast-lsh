@@ -16,7 +16,7 @@ package org.fastlsh.index;
 
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 
-public class CSVParser implements VectorParser
+public class CSVParser implements VectorParser<String>
 {
     private String delim;
     public CSVParser(String d)

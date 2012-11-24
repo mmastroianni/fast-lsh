@@ -23,21 +23,21 @@ public class CSVIndexer {
         IndexOptions options = new IndexOptions();
         options.numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         options.vectorDimension = Integer.parseInt(cmd.getOptionValue("d"));
-        VectorParser parser = new CSVParser(cmd.getOptionValue("sep"));
+        VectorParser<String> parser = new CSVParser(cmd.getOptionValue("sep"));
         
         BufferedReader reader = null;
-        RandomProjectionIndexer indexer = null;
+        RandomProjectionIndexer<String> indexer = null;
         int numLines = 0;
         long start = System.currentTimeMillis();
         try
         {
-        	indexer = new RandomProjectionIndexer(cmd.getOptionValue("o"), options);
+        	indexer = new RandomProjectionIndexer<String>(cmd.getOptionValue("o"), options);
+        	indexer.setParser(parser);
             reader = new BufferedReader(new FileReader(cmd.getOptionValue("i")));
             String line = "";
             while((line = reader.readLine()) != null)
             {
-                VectorWithId vec = parser.parse(line);
-                indexer.indexVector(vec);
+                indexer.indexVector(line);
             }
             
             

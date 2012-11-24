@@ -25,13 +25,13 @@ import org.fastlsh.util.ResourcePool;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 
-public class IndexerTask implements Runnable
+public class IndexerTask<T> implements Runnable
 {
-    List<String> inputs;
+    List<T> inputs;
     Algebra alg;
     ResourcePool<ObjectOutputStream> vecWriters;
     ResourcePool<ObjectOutputStream> sigWriters;
-    VectorParser parser;
+    VectorParser<T> parser;
     HashFamily family;
     
     public IndexerTask()
@@ -42,8 +42,8 @@ public class IndexerTask implements Runnable
     public IndexerTask(ResourcePool<ObjectOutputStream> vecWriters,
                        ResourcePool<ObjectOutputStream> sigWriters, 
                        Algebra alg,
-                       List<String> curList, 
-                       VectorParser parser,
+                       List<T> curList, 
+                       VectorParser<T> parser,
                        HashFamily family)
     {
         this.vecWriters = vecWriters;
@@ -63,7 +63,7 @@ public class IndexerTask implements Runnable
         {
             sigStream = sigWriters.acquire();
             vecStream = vecWriters.acquire();
-            for(String line : inputs)
+            for(T line : inputs)
             {
                 VectorWithId vec = parser.parse(line);
                 double norm = alg.norm2(vec.vector);

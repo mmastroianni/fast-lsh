@@ -27,7 +27,7 @@ import org.fastlsh.util.BitSetWithId;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 
-public class RandomProjectionIndexer implements Closeable
+public class RandomProjectionIndexer<T> implements Closeable
 {
 	private ObjectOutputStream rawStream;
 	private ObjectOutputStream sigStream;
@@ -36,6 +36,7 @@ public class RandomProjectionIndexer implements Closeable
 	private HashFamily family;
 	private File directory;
 	private IndexOptions options;
+	private VectorParser<T> parser;
 
 	public RandomProjectionIndexer(String directory, IndexOptions options) throws IOException {
 		this.options = options;
@@ -56,6 +57,10 @@ public class RandomProjectionIndexer implements Closeable
 
         alg = new Algebra();
 	}
+
+	public void setParser(VectorParser<T> parser) {
+		this.parser = parser;
+	}
 	
 	private void writeOptions() throws IOException {
 		ObjectOutputStream out = null;
@@ -69,12 +74,14 @@ public class RandomProjectionIndexer implements Closeable
 			}
 		}
 	}
-	
 
+	public void indexVector(T vec) throws IOException {
+		indexVector(parser.parse(vec));
+	}
     
-    public boolean indexVector(VectorWithId vec) throws IOException {
+    public void indexVector(VectorWithId vec) throws IOException {
     	double norm = alg.norm2(vec.vector);
-        if(norm == 0.0) return false;
+        if(norm == 0.0) return;
         //Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
         // cosine distances, we only have to do dot products
         sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec.vector)));
@@ -86,7 +93,6 @@ public class RandomProjectionIndexer implements Closeable
             rawStream.flush();
             sigStream.flush();
         }
-        return true;
     }
     
     @Override
