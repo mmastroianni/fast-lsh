@@ -14,14 +14,17 @@
  */
 package org.fastlsh.hash;
 
+import java.io.Serializable;
 import java.util.Random;
 
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 
-public class RandomProjection implements HashFunction
+public class RandomProjection implements HashFunction, Serializable
 {
-    DoubleMatrix1D projection;
+	private static final long serialVersionUID = -2460318038698014925L;
+	
+	DoubleMatrix1D projection;
     
     public RandomProjection(int size) {
         this(size, new Random());

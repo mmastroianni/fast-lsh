@@ -16,13 +16,17 @@
 package org.fastlsh.hash;
 
 
+import java.io.Serializable;
+
 import org.fastlsh.util.BitSet;
 
 import cern.colt.matrix.DoubleMatrix1D;
 
-public class HashFamily
+public class HashFamily implements Serializable
 {
-    HashFunction [] hashes;
+	private static final long serialVersionUID = -7319322808317106833L;
+	
+	HashFunction [] hashes;
     public HashFamily(HashFunction [] hs)
     {
         hashes = hs;
