@@ -24,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -35,6 +34,7 @@ import org.fastlsh.util.BlockingThreadPool;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.ResourcePool;
 import org.fastlsh.util.SimpleCli;
+
 import cern.colt.matrix.linalg.Algebra;
 
 public class ThreadedRandomProjectionIndexer
@@ -57,19 +57,20 @@ public class ThreadedRandomProjectionIndexer
         {
             p.add(new ObjectOutputStream(new FileOutputStream(new File(dir, fileNameHead + i))));
         }
-        return null;
+        p.open();
+        return p;
     }
 
     protected static void closeHandles(ResourcePool<ObjectOutputStream> pool) throws InterruptedException, IOException
     {
-        pool.close();
         do
         {
             ObjectOutputStream oos = pool.acquire();
             oos.close();
-            pool.remove(oos);
+            pool.removeNow(oos);
         }
         while(pool.haveAvailable());
+        pool.close();
     }
     
     public static void main(String [] args) throws ParseException, IOException, InterruptedException
@@ -98,7 +99,7 @@ public class ThreadedRandomProjectionIndexer
         
         final BlockingThreadPool pool = new BlockingThreadPool(numThreads, numThreads);
 
-        final AtomicInteger numLines = new AtomicInteger(0);
+        int numLines = 0;
         try
         {            
             reader = new BufferedReader(new FileReader(cmd.getOptionValue("i")));

@@ -73,6 +73,7 @@ public class BlockingThreadPool
         
     public void awaitTermination(long timeout, TimeUnit unit) throws InterruptedException
     {        
-        pool.awaitTermination(timeout, unit);
+    	pool.shutdown();
+    	pool.awaitTermination(timeout, unit);
     }
 }
