@@ -10,12 +10,13 @@ public class ColtVsCustomDotProduct {
 		int dimension = Integer.parseInt(args[1]);
 		
 		// generate data:
+		double result = 0;
 		Random rand = new Random();
 		double [][] data = new double[numPoints][];
 		for (int i = 0; i < numPoints; i++) {
 			data[i] = new double[dimension];
 			for (int j = 0; j < dimension; j++) {
-				data[i][j] = rand.nextDouble();
+				result = data[i][j] = rand.nextDouble();
 			}
 		}
 		
@@ -23,11 +24,12 @@ public class ColtVsCustomDotProduct {
 		long begin = System.currentTimeMillis();
 		for (int i = 0; i < numPoints; i++) {
 			for (int j = 0; j < numPoints; j++) {
-				dot(data[i], data[j]);
+				result = dot(data[i], data[j]);
 			}
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Custom dot product took " + (end-begin) + " ms.");
+		System.out.println("Result: " + result);
 		
 		// calculate dot products using COLT:
 		DenseDoubleMatrix1D [] dataColt = new DenseDoubleMatrix1D[numPoints];
@@ -47,7 +49,7 @@ public class ColtVsCustomDotProduct {
 	private static double dot (double [] x, double [] y) {
 		double result = 0;
 		for (int i = 0, max = x.length; i < max; i++) {
-			result += x[i] + y[i];
+			result += x[i] * y[i];
 		}
 		return result;
 	}
