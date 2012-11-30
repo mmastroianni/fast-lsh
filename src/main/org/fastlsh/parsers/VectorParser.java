@@ -12,12 +12,13 @@
     See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.fastlsh.index;
 
-import org.fastlsh.parsers.VectorParser;
+package org.fastlsh.parsers;
 
-public interface Indexer<T>
+import org.fastlsh.index.VectorWithId;
+
+
+public interface VectorParser<T>
 {
-    void setParser(VectorParser<T> parser);
-    void indexVector(T vector) throws Exception;
+    public VectorWithId parse(T vector);
 }

@@ -30,6 +30,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
+import org.fastlsh.parsers.CSVParser;
+import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BlockingThreadPool;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.ResourcePool;

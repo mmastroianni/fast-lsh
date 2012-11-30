@@ -15,19 +15,24 @@
 
 package org.fastlsh.index;
 
+import gnu.trove.iterator.TLongIterator;
+import gnu.trove.iterator.TLongObjectIterator;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongObjectHashMap;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.apache.commons.cli.CommandLine;
 import org.fastlsh.util.BitSetWithId;
@@ -134,7 +139,7 @@ public class NearestNeighborSearcher
         int bottom = Math.max(idx-beamRadius, 0);
         int top = Math.min(idx+beamRadius, signatures.length);
         
-        for(int i = bottom; i < top; i++)
+        for(int i = bottom; i <= top; i++)
         {
             retval.add(signatures[i].id);
         }
@@ -154,8 +159,7 @@ public class NearestNeighborSearcher
         for(int i = 0, max = inputs.length; i < max; i++)
         {
             long target = inputs[i];
-            if(target == srcId) continue;
-            double [] targetv = rawVectorMap.get(srcId);
+            double [] targetv = rawVectorMap.get(target);
             double score = targetv == null? 0.0: VectorWithId.dotProduct(src, targetv);
             if(score > minScore) tmp.add(new LongDoublePair(target, score));
         }
@@ -166,7 +170,7 @@ public class NearestNeighborSearcher
     public LongDoublePair[] getScoredSimilars(long id, int beamRadius, double minScore)
     {
         LongDoublePair[] retval = getDistances(id, getSimilars(id, beamRadius), minScore);
-        Arrays.sort(retval, new LongDoublePair.DescendingDComparator());
+        if (retval != null) Arrays.sort(retval, new LongDoublePair.DescendingDComparator());
         return retval;
     }
 
@@ -196,9 +200,10 @@ public class NearestNeighborSearcher
         .addOption(new RequiredOption("i", true, "text file list of target ids, one per line"))
         .addOption(new RequiredOption("r", true, "file containing serialized raw vectors"))
         .addOption(new RequiredOption("s", true, "file containing serialized bitset signatures"))
+        .addOption(new RequiredOption("o", true, "output file"))
         .addOption(new RequiredOption("b", true, "beamwidth to search for within sorted bitset arrays"))
         .addOption(new RequiredOption("p", true, "number of permutations to use in getting similars"))        
-        .addOption(new RequiredOption("m", true, "minimum cosine similarity to take (0.0 will take anything)")).parse(args);
+        .addOption(new RequiredOption("m", true, "minimum cosine similarity to take (-1 will take anything)")).parse(args);
         
         NearestNeighborSearcher searcher = new NearestNeighborSearcher(cmd.getOptionValue("s"), cmd.getOptionValue("r"));
         int beamWidth = Integer.parseInt(cmd.getOptionValue("b"));
@@ -219,11 +224,29 @@ public class NearestNeighborSearcher
                     allSims.put(tid, sims);
                 }
                 LongDoublePair [] newSims = searcher.getScoredSimilars(tid, beamWidth, minScore);
-                sims.addAll(Arrays.asList(newSims));
+                if (newSims != null) sims.addAll(Arrays.asList(newSims));
             }
         }
         
         //TODO: serialize output
+        
+        BufferedWriter writer = new BufferedWriter(new FileWriter(cmd.getOptionValue("o")));
+        TLongObjectIterator<HashSet<LongDoublePair>> ids = allSims.iterator();
+        while(ids.hasNext()) {
+        	ids.advance();
+        	long id = ids.key();
+        	writer.write(id + "\n--------------\n");
+        	HashSet<LongDoublePair> sims = allSims.get(id);
+        	Iterator<LongDoublePair> similars = sims.iterator();
+        	while(similars.hasNext()) {
+        		LongDoublePair similar = similars.next();
+        		writer.write(similar.l + "," + similar.d + "\n");
+        	}
+        	writer.write("\n\n");
+        }
+        writer.flush();
+        writer.close();
+        
+        System.out.println("NearestNeighborSearcher.java finished.");
     }
-    
 }

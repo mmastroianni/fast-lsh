@@ -33,7 +33,7 @@ public class LongDoublePair
         @Override
         public int compare(LongDoublePair o1, LongDoublePair o2)
         {
-            if(o1.d == o2.d) return o1.l ==o2.l? 0: o1.l > o2.l? 1: -1;
+            if(o1.d == o2.d) return o1.l ==o2.l? 0: o1.l > o2.l? -1: 1;
             return o1.d > o2.d? -1: 1;
         }
     }
@@ -53,4 +53,14 @@ public class LongDoublePair
         return "<" + l + "," + d + ">";
     }
     
+    @Override
+    public int hashCode() {
+    	return (int) l;
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+    	LongDoublePair o2 = (LongDoublePair) other;
+    	return (l == o2.l && d == o2.d);
+    }
 }

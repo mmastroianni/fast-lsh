@@ -12,12 +12,24 @@
     See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.fastlsh.index;
+package org.fastlsh.parsers;
 
-import org.fastlsh.parsers.VectorParser;
+import org.fastlsh.index.VectorWithId;
 
-public interface Indexer<T>
+public class CSVParser implements VectorParser<String>
 {
-    void setParser(VectorParser<T> parser);
-    void indexVector(T vector) throws Exception;
+    private String delim;
+    public CSVParser(String d)
+    {
+        delim = d;
+    }
+    @Override
+    public VectorWithId parse(String line)
+    {
+        String [] vals = line.trim().split(delim);
+        long id = Long.parseLong(vals[0]);
+        double [] vec = new double[vals.length-1];
+        for(int i = 1, max = vals.length; i < max; i++) vec[i-1] = Double.parseDouble(vals[i]);
+        return new VectorWithId(id, vec);
+    }
 }

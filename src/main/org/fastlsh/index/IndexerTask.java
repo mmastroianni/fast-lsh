@@ -19,6 +19,7 @@ import java.io.ObjectOutputStream;
 import java.util.List;
 
 import org.fastlsh.hash.HashFamily;
+import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BitSetWithId;
 import org.fastlsh.util.ResourcePool;
 

@@ -22,6 +22,7 @@ import java.io.ObjectOutputStream;
 
 import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
+import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BitSetWithId;
 
 
