@@ -20,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BitSetWithId;
@@ -39,18 +38,16 @@ public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 	public RandomProjectionIndexer(String directory, IndexOptions options) throws IOException {
 		this.options = options;
 		this.directory = new File(directory);
-		
+		family = options.hashFamily;
 		if (this.directory.exists()) {
 			throw new IOException("Output directory exists");
 		}
 		
 		this.directory.mkdir();
 		
-        rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, "normalizedVectors")));
-        sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, "signatures")));
+        rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
+        sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.signatures)));
 
-        family = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
-        options.hashFamily = family;
         writeOptions();
 	}
 	

@@ -6,10 +6,15 @@ import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
-import org.fastlsh.parsers.CSVParser;
-import org.fastlsh.parsers.VectorParser;
+
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
+
+
+import org.fastlsh.hash.HashFactory;
+import org.fastlsh.hash.HashFamily;
+import org.fastlsh.parsers.CSVParser;
+import org.fastlsh.parsers.VectorParser;
 
 public class CSVIndexer {
 
@@ -25,6 +30,8 @@ public class CSVIndexer {
         IndexOptions options = new IndexOptions();
         options.numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         options.vectorDimension = Integer.parseInt(cmd.getOptionValue("d"));
+        options.hashFamily = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
+
         VectorParser<String> parser = new CSVParser(cmd.getOptionValue("sep"));
         
         BufferedReader reader = null;

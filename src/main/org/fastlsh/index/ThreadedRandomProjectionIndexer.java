@@ -57,15 +57,13 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
     	this.batchSize = batchSize;
         curList = new ArrayList<T>();
 
-        pool = new BlockingThreadPool(numThreads, numThreads);
 
-        vecWriters = allocateWriters(new File(directory, "normalizedVectors"), vecHead, numThreads);
+        vecWriters = allocateWriters(new File(directory, Constants.normalizedVectors), vecHead, numThreads);
         vecWriters.open();
-        sigWriters = allocateWriters(new File(directory, "signatures"), sigHead, numThreads);
+        sigWriters = allocateWriters(new File(directory, Constants.signatures), sigHead, numThreads);
         sigWriters.open();
-        
-        family = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
-        options.hashFamily = family;
+        family = options.hashFamily;
+        pool = new BlockingThreadPool(numThreads, numThreads);
     }
     
     protected static ResourcePool<ObjectOutputStream> allocateWriters(File directory, String fileNameHead, int numWriters) throws FileNotFoundException, IOException
@@ -107,6 +105,8 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
         IndexOptions options = new IndexOptions();
         options.numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         options.vectorDimension = Integer.parseInt(cmd.getOptionValue("d"));
+        options.hashFamily = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
+
         BufferedReader reader = null;
         int batchSize = Integer.parseInt(cmd.getOptionValue("b"));
         int numThreads = Integer.parseInt(cmd.getOptionValue("t", defaultThreads));

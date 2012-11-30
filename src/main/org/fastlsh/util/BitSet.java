@@ -22,7 +22,7 @@ import java.io.Serializable;
 public class BitSet implements Serializable, Cloneable
 {
     private static final long serialVersionUID = 744071041169778527L;
-    protected final long[]      bits;
+    public final long[]      bits;
     public final int numBits;
     
     public BitSet(BitSet other)

@@ -26,9 +26,12 @@ public class GenerateRandomCSVInputs
     
     public static void main(String [] args) throws Exception
     {
-        int numFeatures = Integer.parseInt(args[0]);
-        int numRows = Integer.parseInt(args[1]);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(args[2]));
+        generateTestFile(Integer.parseInt(args[0]), Integer.parseInt(args[1]), args[2]);
+    }
+    
+    public static void generateTestFile(int numFeatures, int numRows, String fileName) throws Exception
+    {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         int numDone = 0;        
         do
         {
@@ -36,5 +39,8 @@ public class GenerateRandomCSVInputs
             writer.newLine();
         }
         while(numDone < numRows);
+        writer.flush();
+        writer.close();
     }
+
 }

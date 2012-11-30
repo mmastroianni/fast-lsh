@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="fast_lsh" basedir="." default="build">
 
-	<property name="app.name" value="athena" />
+	<property name="app.name" value="fast_lsh" />
 	<property name="src.dir" value="${basedir}/src" />
 	<property name="dist.dir" value="${basedir}/dist" />
 	<property name="class.dir" value="${dist.dir}/classes" />

@@ -16,6 +16,7 @@
 package org.fastlsh.util;
 
 import java.io.Serializable;
+import java.util.Arrays;
 public class BitSetWithId implements Serializable
 {
     private static final long serialVersionUID = 1503715050039353843L;
@@ -30,5 +31,15 @@ public class BitSetWithId implements Serializable
     public String toString()
     {
         return "[ id: " + id + " bits: " + bits.toString() + "]";    
+    }
+    
+    @Override
+    public boolean equals(Object other)
+    {
+        if (other == null) return false;
+        if (other == this) return true;
+        if (!(other instanceof BitSetWithId))return false;
+        BitSetWithId obs = (BitSetWithId)other;
+        return id == obs.id? Arrays.equals(bits.bits, obs.bits.bits):false;
     }
 }
