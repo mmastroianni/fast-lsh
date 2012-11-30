@@ -37,15 +37,12 @@ public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 
 	public RandomProjectionIndexer(String directory, IndexOptions options) throws IOException {
 		this.options = options;
+        family = options.hashFamily;
 		this.directory = new File(directory);
-		family = options.hashFamily;
-		if (this.directory.exists()) {
-			throw new IOException("Output directory exists");
-		}
-		
-		this.directory.mkdir();
-		
-        rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
+		if (this.directory.exists()) throw new IOException("Output directory exists: " + directory);
+		this.directory.mkdir();		
+
+		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
         sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.signatures)));
 
         writeOptions();

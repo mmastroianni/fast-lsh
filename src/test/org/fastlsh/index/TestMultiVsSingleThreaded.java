@@ -16,7 +16,6 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 
-import org.fastlsh.util.BitSet;
 import org.fastlsh.util.BitSetWithId;
 import org.fastlsh.util.LexicographicBitSetComparator;
 
@@ -48,8 +47,9 @@ public class TestMultiVsSingleThreaded
     private static final int TEMP_DIR_ATTEMPTS = 10000;
 
     String                   input;
-    String                   multiOutput;
-    String                   singleOutput;
+    String                   singleOutput      = "/data/fast_lsh/sm_test/single";
+    String                   multiOutput       = "/data/fast_lsh/sm_test/multi";
+
     int                      numHashes         = 128;
     int                      numFeatures       = 50;
     int                      numRows           = 1000;
@@ -73,14 +73,12 @@ public class TestMultiVsSingleThreaded
                 numLines++;
             }
             Assert.assertEquals(numRows, numLines);
-            
+
         }
         finally
         {
-            if (reader != null)
-                reader.close();
-            if (indexer != null)
-                indexer.close();
+            if (reader != null)  reader.close();
+            if (indexer != null) indexer.close();
         }
     }
 
@@ -90,25 +88,23 @@ public class TestMultiVsSingleThreaded
         BufferedReader reader = null;
         ThreadedRandomProjectionIndexer<String> indexer = null;
         try
-        {            
+        {
             indexer = new ThreadedRandomProjectionIndexer<String>(multiOutput, options, 16, 10000);
             indexer.setParser(parser);
             reader = new BufferedReader(new FileReader(input));
             String line = null;
-            while((line = reader.readLine()) != null)
+            while ((line = reader.readLine()) != null)
             {
                 indexer.indexVector(line.trim());
             }
         }
         finally
         {
-            if(reader != null) reader.close();
-            if (indexer != null) {
-                indexer.close();
-            }
+            if (reader != null) reader.close();
+            if (indexer != null) indexer.close();
         }
     }
-    
+
     protected void delete(String f)
     {
         try
@@ -116,8 +112,7 @@ public class TestMultiVsSingleThreaded
             File tmp = new File(f);
             tmp.delete();
         }
-        catch(Exception e){}
-        
+        catch (Exception e){}
     }
 
     @After
@@ -127,7 +122,7 @@ public class TestMultiVsSingleThreaded
         delete(singleOutput);
         delete(multiOutput);
     }
-    
+
     @Test
     public void test() throws Exception
     {
@@ -135,25 +130,21 @@ public class TestMultiVsSingleThreaded
         input = tmp.getAbsolutePath();
         tmp.delete();
 
-        singleOutput = "/data/fast_lsh/sm_test/single";
-        multiOutput  = "/data/fast_lsh/sm_test/multi";
-
         /*
         File singleOutputDir = createTempDir();
         singleOutput = singleOutputDir.getAbsolutePath();
         singleOutputDir.delete();
-        
+
         File multiOutputDir = createTempDir();
         multiOutput = multiOutputDir.getAbsolutePath();
-        singleOutputDir.delete();
+        multiOutputDir.delete();
         */
-        
         GenerateRandomCSVInputs.generateTestFile(numFeatures, numRows, input);
 
         IndexOptions options = new IndexOptions();
         options.numHashes = numHashes;
-        options.vectorDimension = numFeatures;        
-        options.hashFamily = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
+        options.vectorDimension = numFeatures;
+        options.hashFamily = new HashFamily( HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
 
         VectorParser<String> parser = new CSVParser(",");
 
@@ -163,40 +154,42 @@ public class TestMultiVsSingleThreaded
         reader1.initialize();
         IndexReader reader2 = new IndexReader(multiOutput);
         reader2.initialize();
-        
-        BitSetWithId [] sigs1 = reader1.signatures;
-        BitSetWithId [] sigs2 = reader2.signatures;
-        Assert.assertEquals(numRows, sigs1.length);        
+
+        BitSetWithId[] sigs1 = reader1.signatures;
+        BitSetWithId[] sigs2 = reader2.signatures;
+        Assert.assertEquals(numRows, sigs1.length);
         Assert.assertEquals(sigs1.length, sigs2.length);
-        Assert.assertTrue(areSame(sigs1, sigs2, reader2.sigMap));
-        
+        Assert.assertTrue(areSame(sigs1, sigs2));
+
         Assert.assertEquals(numRows, reader1.rawVectorMap.size());
         Assert.assertTrue(areSame(reader1.rawVectorMap, reader2.rawVectorMap));
     }
-    
-    private boolean areSame(BitSetWithId[] sigs1, BitSetWithId[] sigs2, TLongObjectHashMap<BitSet> sigMap)
+
+    private boolean areSame(BitSetWithId[] sigs1, BitSetWithId[] sigs2)
     {
         Comparator<BitSetWithId> comp = new LexicographicBitSetComparator();
         Arrays.sort(sigs1, comp);
         Arrays.sort(sigs2, comp);
-        for(int i = 0, m = sigs1.length; i < m; i++)
+        for (int i = 0, m = sigs1.length; i < m; i++)
         {
-            long id = sigs1[i].id;
-            BitSet bs2 = sigMap.get(id);
-            Assert.assertArrayEquals(sigs1[i].bits.bits, bs2.bits);
+            if (sigs1[i].id != sigs2[i].id)
+                return false;
+            Assert.assertArrayEquals(sigs1[i].bits.bits, sigs2[i].bits.bits);
         }
         return true;
     }
 
     private boolean areSame(TLongObjectHashMap<double[]> map1,
-                            TLongObjectHashMap<double[]> map2)
+            TLongObjectHashMap<double[]> map2)
     {
-        if(map1.size() != map2.size()) return false;
-        TLongObjectIterator<double []> iter = map1.iterator();
-        while(iter.hasNext())
+        if (map1.size() != map2.size())
+            return false;
+        TLongObjectIterator<double[]> iter = map1.iterator();
+        while (iter.hasNext())
         {
             iter.advance();
-            if(!Arrays.equals(iter.value(), map2.get(iter.key()))) return false;
+            if (!Arrays.equals(iter.value(), map2.get(iter.key())))
+                return false;
         }
         return true;
     }
