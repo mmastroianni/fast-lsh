@@ -69,9 +69,7 @@ public class IndexerTask<T> implements Runnable
                 vec.scalarDivide(norm);
                 vecStream.writeObject(vec);
             }
-            sigStream.flush();
             sigStream.reset();                    
-            vecStream.flush();
             vecStream.reset();                                
         }
         catch(Exception e)
