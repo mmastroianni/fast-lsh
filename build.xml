@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<project name="fast_lsh" basedir="." default="build">
+
+	<property name="app.name" value="athena" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="class.dir" value="${dist.dir}/classes" />
+	<property name="lib.dir" value="${basedir}/lib" />
+	
+	<path id="classpath">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement path="${class.dir}" />
+	</path>
+	
+	<target name="clean">
+		<delete dir="${dist.dir}" />
+	</target>
+	
+	<target name="compile" depends="clean">
+		<mkdir dir="${class.dir}" />
+		<javac fork="true"
+		       destdir="${class.dir}"
+		       target="1.5"
+		       debug="true"
+		       includeantruntime="false"
+		       deprecation="false"
+		       memoryinitialsize="256m"
+		       memorymaximumsize="256m"
+		       optimize="false"
+		       failonerror="true">
+			<src path="${src.dir}" />
+			<classpath refid="classpath" />
+		</javac>
+	</target>
+
+	<target name="build" depends="compile">
+	    <copy todir="${dist.dir}">
+			<fileset dir="${lib.dir}"/>
+	    </copy>
+	    <jar jarfile="${dist.dir}/${app.name}.jar">
+	    	<fileset dir="${class.dir}"/>
+	    </jar>
+	</target>
+	
+	<target name="all.libs" depends="compile">
+		<jar jarfile="${dist.dir}/all_libs.jar">
+			<restrict>
+				<name name="**/*.*"/>
+				<archives>
+					<zips>
+						<fileset dir="${lib.dir}"/>
+					</zips>
+				</archives>
+			</restrict>
+		</jar>
+	</target>
+</project>
