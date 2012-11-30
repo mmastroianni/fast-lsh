@@ -17,29 +17,29 @@ package org.fastlsh.hash;
 import java.io.Serializable;
 import java.util.Random;
 
-import cern.colt.matrix.DoubleMatrix1D;
-import cern.colt.matrix.impl.DenseDoubleMatrix1D;
+import org.fastlsh.index.VectorWithId;
+
 
 public class RandomProjection implements HashFunction, Serializable
 {
-	private static final long serialVersionUID = -2460318038698014925L;
+    private static final long serialVersionUID = -2460318038698014925L;
 	
-	DoubleMatrix1D projection;
-    
+    double []projection;
     public RandomProjection(int size) {
         this(size, new Random());
     }
     
     public RandomProjection(int size, Random rand) {
-        projection = new DenseDoubleMatrix1D(size);
+        projection = new double [size];
         for (int i = 0; i < size; i++) {
-            projection.set(i,rand.nextGaussian());
+            projection[i] = rand.nextGaussian();
         }
     }
 
     @Override
-    public boolean hash(DoubleMatrix1D input)
+    public boolean hash(VectorWithId input)
     {
-        return projection.zDotProduct(input) >= 0;
+        return input.dotProduct(projection) >= 0;
     }
+
 }

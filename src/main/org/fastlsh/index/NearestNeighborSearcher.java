@@ -36,20 +36,18 @@ import org.fastlsh.util.Permuter;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
 
-import cern.colt.matrix.DoubleMatrix1D;
-
 public class NearestNeighborSearcher
 {
     BitSetWithId [] signatures;
     TLongObjectHashMap<BitSetWithId> sigMap;
-    TLongObjectHashMap<DoubleMatrix1D> rawVectorMap;
+    TLongObjectHashMap<double []> rawVectorMap;
     Permuter permuter;
     private int numBits;
     
     private void initializeRawVecs(String file) throws IOException
     {
         ObjectInputStream ois = null;
-        rawVectorMap = new TLongObjectHashMap<DoubleMatrix1D>();
+        rawVectorMap = new TLongObjectHashMap<double []>();
         try
         {
             ois = new ObjectInputStream(new FileInputStream(file));
@@ -57,7 +55,7 @@ public class NearestNeighborSearcher
             do
             {
                 vec = (VectorWithId) ois.readObject();
-                rawVectorMap.put(vec.id, vec.vector);
+                rawVectorMap.put(vec.id, vec.vals);
             }while(vec != null);
         }
         catch(EOFException e)
@@ -150,15 +148,15 @@ public class NearestNeighborSearcher
     
     public LongDoublePair [] getDistances(long srcId, long [] inputs, double minScore)
     {
-        DoubleMatrix1D src = rawVectorMap.get(srcId);
+        double [] src = rawVectorMap.get(srcId);
         if(src == null) return null;
         ArrayList<LongDoublePair> tmp = new ArrayList<LongDoublePair>();
         for(int i = 0, max = inputs.length; i < max; i++)
         {
             long target = inputs[i];
             if(target == srcId) continue;
-            DoubleMatrix1D targetv = rawVectorMap.get(srcId);
-            double score = targetv == null? 0.0: src.zDotProduct(targetv);
+            double [] targetv = rawVectorMap.get(srcId);
+            double score = targetv == null? 0.0: VectorWithId.dotProduct(src, targetv);
             if(score > minScore) tmp.add(new LongDoublePair(target, score));
         }
         

@@ -18,9 +18,9 @@ package org.fastlsh.hash;
 
 import java.io.Serializable;
 
+import org.fastlsh.index.VectorWithId;
 import org.fastlsh.util.BitSet;
 
-import cern.colt.matrix.DoubleMatrix1D;
 
 public class HashFamily implements Serializable
 {
@@ -32,7 +32,7 @@ public class HashFamily implements Serializable
         hashes = hs;
     }
     
-    public BitSet makeSignature(DoubleMatrix1D input)
+    public BitSet makeSignature(VectorWithId input)
     {
         BitSet retval = new BitSet(hashes.length);
         for(int i = 0, max = hashes.length; i < max; i++)

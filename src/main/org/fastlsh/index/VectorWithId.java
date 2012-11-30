@@ -17,16 +17,56 @@ package org.fastlsh.index;
 
 import java.io.Serializable;
 
-import cern.colt.matrix.DoubleMatrix1D;
 
 public class VectorWithId implements Serializable
 {
     private static final long serialVersionUID = 9163123870965523774L;
     final protected long id;
-    final protected DoubleMatrix1D vector;
-    public VectorWithId(long iid, DoubleMatrix1D ivector)
+    //final protected DoubleMatrix1D vector;
+    final protected double [] vals;
+    public VectorWithId(long iid,  double [] vector)
     {
         id = iid;
-        vector = ivector;
+        vals = vector;
     }
+    
+    public double norm2()
+    {
+        double out = 0;
+        for(int i = 0, m = vals.length; i < m; i++)
+        {
+            out += vals[i]*vals[i];
+        }
+        return Math.sqrt(out);
+    }
+    
+    public double dotProduct(VectorWithId other)
+    {
+        return dotProduct(vals, other.vals);
+    }
+
+    public double dotProduct(double [] o)
+    {
+        return dotProduct(vals, o);
+    }
+
+    public static double dotProduct(double [] t, double [] o)
+    {
+        assert(o.length == t.length);
+        double out= 0;
+        for(int i = 0, m = t.length; i < m; i++)
+        {
+            out += t[i]*o[i];
+        }
+        return out;        
+    }
+    
+    public void scalarDivide(double s)
+    {
+        for(int i = 0, m = vals.length; i < m; i++)
+        {
+            vals[i] /= s;
+        }
+    }
+    
 }

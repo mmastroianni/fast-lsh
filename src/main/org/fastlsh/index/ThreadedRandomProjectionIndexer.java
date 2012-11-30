@@ -35,7 +35,6 @@ import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.ResourcePool;
 import org.fastlsh.util.SimpleCli;
 
-import cern.colt.matrix.linalg.Algebra;
 
 public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
 {   
@@ -45,7 +44,6 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
     
 	private List<T> curList;
 	private BlockingThreadPool pool;
-	private Algebra alg;
 	private ResourcePool<ObjectOutputStream> vecWriters;
 	private ResourcePool<ObjectOutputStream> sigWriters;
 	private VectorParser<T> parser;
@@ -58,7 +56,6 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
         curList = new ArrayList<T>();
 
         pool = new BlockingThreadPool(numThreads, numThreads);
-        alg = new Algebra();
 
         vecWriters = allocateWriters(new File(directory, "normalizedVectors"), vecHead, numThreads);
         vecWriters.open();
@@ -157,14 +154,14 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
 		curList.add(vector);
         if(curList.size() == batchSize)
         {
-            pool.execute(new IndexerTask<T>(vecWriters, sigWriters, alg, curList, parser, family));
+            pool.execute(new IndexerTask<T>(vecWriters, sigWriters, curList, parser, family));
             curList = new ArrayList<T>();
         }
 	}
 	
 	public void close() throws IOException {
 		try {
-	    	if(curList.size() != 0) pool.execute(new IndexerTask<T>(vecWriters, sigWriters, alg, curList, parser, family));
+	    	if(curList.size() != 0) pool.execute(new IndexerTask<T>(vecWriters, sigWriters, curList, parser, family));
 
 	    	pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 

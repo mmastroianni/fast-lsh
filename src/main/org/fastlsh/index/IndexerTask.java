@@ -22,13 +22,10 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.util.BitSetWithId;
 import org.fastlsh.util.ResourcePool;
 
-import cern.colt.matrix.linalg.Algebra;
-import cern.jet.math.Functions;
 
 public class IndexerTask<T> implements Runnable
 {
     List<T> inputs;
-    Algebra alg;
     ResourcePool<ObjectOutputStream> vecWriters;
     ResourcePool<ObjectOutputStream> sigWriters;
     VectorParser<T> parser;
@@ -41,14 +38,12 @@ public class IndexerTask<T> implements Runnable
     
     public IndexerTask(ResourcePool<ObjectOutputStream> vecWriters,
                        ResourcePool<ObjectOutputStream> sigWriters, 
-                       Algebra alg,
                        List<T> curList, 
                        VectorParser<T> parser,
                        HashFamily family)
     {
         this.vecWriters = vecWriters;
         this.sigWriters = sigWriters;
-        this.alg = alg;
         inputs = curList;
         this.parser = parser;
         this.family = family;
@@ -66,12 +61,12 @@ public class IndexerTask<T> implements Runnable
             for(T line : inputs)
             {
                 VectorWithId vec = parser.parse(line);
-                double norm = alg.norm2(vec.vector);
+                double norm = vec.norm2();
                 if(norm == 0.0) continue;
                 // Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
                 // cosine distances, we only have to do dot products
-                sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec.vector)));
-                vec.vector.assign(Functions.div(norm));
+                sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec)));
+                vec.scalarDivide(norm);
                 vecStream.writeObject(vec);
             }
         }

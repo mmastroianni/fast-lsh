@@ -14,9 +14,10 @@
  */
 package org.fastlsh.hash;
 
-import cern.colt.matrix.DoubleMatrix1D;
+import org.fastlsh.index.VectorWithId;
+
 
 public interface HashFunction
 {
-    public abstract boolean hash(DoubleMatrix1D input);
+    public abstract boolean hash(VectorWithId input);
 }

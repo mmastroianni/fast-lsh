@@ -14,8 +14,6 @@
  */
 package org.fastlsh.index;
 
-import cern.colt.matrix.impl.DenseDoubleMatrix1D;
-
 public class CSVParser implements VectorParser<String>
 {
     private String delim;
@@ -30,6 +28,6 @@ public class CSVParser implements VectorParser<String>
         long id = Long.parseLong(vals[0]);
         double [] vec = new double[vals.length-1];
         for(int i = 1, max = vals.length; i < max; i++) vec[i-1] = Double.parseDouble(vals[i]);
-        return new VectorWithId(id, new DenseDoubleMatrix1D(vec));
+        return new VectorWithId(id, vec);
     }
 }

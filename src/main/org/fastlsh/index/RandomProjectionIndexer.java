@@ -24,15 +24,12 @@ import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.util.BitSetWithId;
 
-import cern.colt.matrix.linalg.Algebra;
-import cern.jet.math.Functions;
 
 public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 {
 	private ObjectOutputStream rawStream;
 	private ObjectOutputStream sigStream;
 	private int numVectors;
-	private Algebra alg;
 	private HashFamily family;
 	private File directory;
 	private IndexOptions options;
@@ -54,8 +51,6 @@ public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
         family = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
         options.hashFamily = family;
         writeOptions();
-
-        alg = new Algebra();
 	}
 	
 	@Override
@@ -82,12 +77,12 @@ public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 	}
     
     public void indexVector(VectorWithId vec) throws IOException {
-    	double norm = alg.norm2(vec.vector);
+    	double norm = vec.norm2();
         if(norm == 0.0) return;
         //Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
         // cosine distances, we only have to do dot products
-        sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec.vector)));
-        vec.vector.assign(Functions.div(norm));
+        sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec)));
+        vec.scalarDivide(norm);
         rawStream.writeObject(vec);
         numVectors++;
         if(numVectors%10000 == 0)
