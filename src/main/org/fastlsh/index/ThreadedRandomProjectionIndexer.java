@@ -122,11 +122,8 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
             while((line = reader.readLine()) != null)
             {
                 indexer.indexVector(line.trim());
-                if (numLines++ % 10000 == 0) {
-                	System.out.println(numLines);
-                }
+                numLines++;
             }
-
         }
         finally
         {
