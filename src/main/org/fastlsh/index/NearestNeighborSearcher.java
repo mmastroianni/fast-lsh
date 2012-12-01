@@ -36,6 +36,7 @@ import java.util.Iterator;
 import org.apache.commons.cli.CommandLine;
 import org.fastlsh.util.BitSetWithId;
 import org.fastlsh.util.LexicographicBitSetComparator;
+import org.fastlsh.util.MathFns;
 import org.fastlsh.util.Permuter;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
@@ -159,7 +160,7 @@ public class NearestNeighborSearcher
         {
             long target = inputs[i];
             double [] targetv = rawVectorMap.get(target);
-            double score = targetv == null? 0.0: VectorWithId.dotProduct(src, targetv);
+            double score = targetv == null? 0.0: MathFns.dot(src, targetv);
             if(score > minScore) tmp.add(new LongDoublePair(target, score));
         }
         

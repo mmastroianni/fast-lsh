@@ -32,6 +32,9 @@ The indexing benchmark we've been running so far is as follows:
   and 16 threads (on this particular box, that number of threads
   seemed to be the sweet spot).
 
+This benchmark has been run on a single i7 box running ubuntu 11.10
+with 32G of ram.
+
 Our current time is 53 seconds to index 10M rows and dump them to disk.
 
 For really large data sizes, the signature generation should be done

@@ -1,35 +1,27 @@
 package org.fastlsh.util;
 
 public class MathFns {
-	/**
-	 * These functions assume that vectors x and y are of the same length.
-	 * We bypass checking this in favor of speed.
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	
 	public static double dot(double [] x, double [] y) {
-		double result = 0;
-		for (int i = 0, max = x.length; i < max; i++) {
-			result += x[i] * y[i];
-		}
+	    assert(x.length == y.length);
+	    double result = 0;
+		for (int i = 0, max = x.length; i < max; i++) result += x[i] * y[i];
 		return result;
 	}
 	
-	// TODO:
-	// pending discussion of design issues:
-//	public static double dot(SparseVector x, SparseVector y) {
-//		
-//	}
-	
 	public static double l2Dist(double [] x, double [] y) {
-		double result = 0;
-		for (int i = 0, max = x.length; i < max; i++) {
-			result += (y[i] - x[i]) * (y[i] - x[i]);
-		}
+        assert(x.length == y.length);
+	    double result = 0;
+		for (int i = 0, max = x.length; i < max; i++) result += (y[i] - x[i]) * (y[i] - x[i]);
 		return Math.sqrt(result);
 	}
 	
-	// TODO: Hamming distance.  Make efficient in terms of bit operations.
+    public static double norm2(double [] vals) {
+        double out = 0;
+        for(int i = 0, m = vals.length; i < m; i++) out += vals[i]*vals[i];
+        return Math.sqrt(out);
+    }
+    
+    public static void scalarDivide(double [] vals, double s) {
+        for(int i = 0, m = vals.length; i < m; i++) vals[i] /= s;        
+    }
 }

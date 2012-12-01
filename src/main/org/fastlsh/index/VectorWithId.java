@@ -17,6 +17,8 @@ package org.fastlsh.index;
 
 import java.io.Serializable;
 
+import org.fastlsh.util.MathFns;
+
 
 public class VectorWithId implements Serializable
 {
@@ -32,41 +34,21 @@ public class VectorWithId implements Serializable
     
     public double norm2()
     {
-        double out = 0;
-        for(int i = 0, m = vals.length; i < m; i++)
-        {
-            out += vals[i]*vals[i];
-        }
-        return Math.sqrt(out);
+        return MathFns.norm2(vals);
     }
     
     public double dotProduct(VectorWithId other)
     {
-        return dotProduct(vals, other.vals);
+        return MathFns.dot(vals, other.vals);
     }
 
     public double dotProduct(double [] o)
     {
-        return dotProduct(vals, o);
+        return MathFns.dot(vals, o);
     }
 
-    public static double dotProduct(double [] t, double [] o)
-    {
-        assert(o.length == t.length);
-        double out= 0;
-        for(int i = 0, m = t.length; i < m; i++)
-        {
-            out += t[i]*o[i];
-        }
-        return out;        
-    }
-    
     public void scalarDivide(double s)
     {
-        for(int i = 0, m = vals.length; i < m; i++)
-        {
-            vals[i] /= s;
-        }
+        MathFns.scalarDivide(vals, s);
     }
-    
 }
