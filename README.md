@@ -24,7 +24,19 @@ Searching
 Benchmarks
 ----------------------
 
+The indexing benchmark we've been running so far is as follows:
 
+* Generate 10M random vectors 50 columns wide, and dump them into a
+  csv file.
+* Run the multi threaded indexer with 128 hashes, a batch size of 25k,
+  and 16 threads (on this particular box, that number of threads
+  seemed to be the sweet spot).
+
+Our current time is 53 seconds to index 10M rows and dump them to disk.
+
+For really large data sizes, the signature generation should be done
+in hadoop, as this will be pretty easy to do. We're planning to write
+the hadoop version fairly soon.
 
 References
 ----------------------
