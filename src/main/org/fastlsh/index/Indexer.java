@@ -14,10 +14,43 @@
  */
 package org.fastlsh.index;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import org.fastlsh.parsers.VectorParser;
 
-public interface Indexer<T>
+public abstract class Indexer<T>
 {
-    void setParser(VectorParser<T> parser);
-    void indexVector(T vector) throws Exception;
+    IndexOptions options;
+    String rootDirName;
+    protected VectorParser<T> parser;
+
+    public Indexer(String rootDirName, IndexOptions options)
+    {
+        this.options = options;
+        this.rootDirName = rootDirName;
+    }
+
+    public abstract void indexVector(T vector) throws Exception;
+
+    public void setParser(VectorParser<T> parser) {
+        this.parser = parser;
+    }
+
+    protected void writeOptions() throws IOException 
+    {
+        ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(new File(rootDirName, Constants.options)));
+            out.writeObject(options);
+        }
+        finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
 }

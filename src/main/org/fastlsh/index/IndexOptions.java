@@ -10,4 +10,5 @@ public class IndexOptions implements Serializable {
 	public int vectorDimension;
 	public int numHashes;
 	public HashFamily hashFamily;
+	public int numPermutations;
 }

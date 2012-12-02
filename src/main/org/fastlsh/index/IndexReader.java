@@ -3,12 +3,15 @@ package org.fastlsh.index;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
 import org.fastlsh.util.BitSet;
 import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.LongStoreReader;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
@@ -17,8 +20,11 @@ public class IndexReader
     TLongObjectHashMap<BitSet> sigMap;
     BitSetWithId [] signatures;
     TLongObjectHashMap<double []> rawVectorMap;
-
+    TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
+    IndexOptions options;
     String rootDir;
+    LongStoreReader [] permutationLists;
+
     public IndexReader(String rootDir)
     {
         this.rootDir = rootDir;
@@ -29,12 +35,15 @@ public class IndexReader
     {
         File root = new File(rootDir);
         if(!(root.exists() && root.isDirectory())) throw(new InvalidIndexException(rootDir, "Root dir not present or not a directory"));
-        
-        initializeRawVecs();
-        initializeSignatures();
+        initializeOptions();
     }
 
-    private void initializeRawVecs() throws InvalidIndexException, IOException
+    protected void initializeOptions()
+    {
+        
+    }
+    
+    public  void initializeRawVecs() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.normalizedVectors);
         if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Normalized Vectors file not present in this index"));
@@ -49,6 +58,43 @@ public class IndexReader
         {
             initializeRawVecs(rawDir.getAbsolutePath());
         }
+    }
+
+    public void initializePermutationLists() throws InvalidIndexException, IOException
+    {
+        File rawDir = new File(rootDir, Constants.permutations);
+        if(!rawDir.exists() || !rawDir.isDirectory()) throw(new InvalidIndexException(rootDir, "No permutation lists found"));
+        
+        String [] perms = rawDir.list(new FilenameFilter()
+        {
+            @Override
+            public boolean accept(File dir, String name)
+            {
+                return name.contains("perm")? true: false;
+            }
+        });
+        if(perms.length != options.numPermutations) throw(new InvalidIndexException(rootDir, "Expected " + options.numPermutations + " permutation lists, but found " + perms.length)); 
+        permutationLists = new LongStoreReader [options.numPermutations];
+        for(int i = 0; i < options.numPermutations; i++)
+        {
+            String permName = perms[i];
+            int permIdx = extractPermIdx(rootDir, permName);
+            permutationLists[permIdx] = new LongStoreReader(new File(rawDir, permName).getAbsolutePath());
+        }
+    }
+    
+    protected static int extractPermIdx(String root, String name) throws InvalidIndexException
+    {
+        if(!name.contains(Constants.permutationHead)) throw new InvalidIndexException(root, "found invalid permutation list name: " + name);
+        return Integer.parseInt(name.substring(name.indexOf("_")));
+    }
+    
+    @SuppressWarnings("unchecked")
+    public void initializePermutationIndex() throws FileNotFoundException, IOException, ClassNotFoundException
+    {
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.idMap)));
+        permutationIndex = (TLongObjectHashMap<int []>) ois.readObject();
+        ois.close();
     }
     
     private void initializeRawVecs(String file) throws IOException
@@ -69,7 +115,7 @@ public class IndexReader
         finally { ois.close(); }
     }
 
-    private void initializeSignatures() throws InvalidIndexException, IOException
+    public void initializeSignatures() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.signatures);
         if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Signatures file not present in this index"));

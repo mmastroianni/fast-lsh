@@ -21,21 +21,19 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import org.fastlsh.hash.HashFamily;
-import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BitSetWithId;
 
 
-public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
+public class RandomProjectionIndexer<T> extends Indexer<T> implements Closeable
 {
 	private ObjectOutputStream rawStream;
 	private ObjectOutputStream sigStream;
 	private int numVectors;
 	private HashFamily family;
 	private File directory;
-	private IndexOptions options;
-	private VectorParser<T> parser;
 
 	public RandomProjectionIndexer(String directory, IndexOptions options) throws IOException {
+	    super(directory, options);
 		this.options = options;
         family = options.hashFamily;
 		this.directory = new File(directory);
@@ -47,25 +45,7 @@ public class RandomProjectionIndexer<T> implements Indexer<T>, Closeable
 
         writeOptions();
 	}
-	
-	@Override
-	public void setParser(VectorParser<T> parser) {
-		this.parser = parser;
-	}
-	
-	private void writeOptions() throws IOException {
-		ObjectOutputStream out = null;
-		try {
-			out = new ObjectOutputStream(new FileOutputStream(new File(directory, "options")));
-			out.writeObject(options);
-		}
-		finally {
-			if (out != null) {
-				out.close();
-			}
-		}
-	}
-	
+		
 	@Override
 	public void indexVector(T vec) throws IOException {
 		indexVector(parser.parse(vec));

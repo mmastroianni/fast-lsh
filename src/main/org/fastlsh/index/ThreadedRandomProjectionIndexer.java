@@ -38,7 +38,7 @@ import org.fastlsh.util.ResourcePool;
 import org.fastlsh.util.SimpleCli;
 
 
-public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
+public class ThreadedRandomProjectionIndexer<T> extends Indexer<T> implements Closeable
 {   
     static String defaultThreads = "10";
     static String sigHead = "signature_";
@@ -54,9 +54,9 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
 
 	public ThreadedRandomProjectionIndexer(String directory, IndexOptions options, int numThreads, int batchSize) throws IOException
     {
+	    super(directory, options);
     	this.batchSize = batchSize;
         curList = new ArrayList<T>();
-
 
         vecWriters = allocateWriters(new File(directory, Constants.normalizedVectors), vecHead, numThreads);
         vecWriters.open();
@@ -126,6 +126,7 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
                 indexer.indexVector(line.trim());
                 numLines++;
             }
+            indexer.writeOptions();
         }
         finally
         {
@@ -142,11 +143,6 @@ public class ThreadedRandomProjectionIndexer<T> implements Indexer<T>, Closeable
         System.out.println("number of hashes: " + options.numHashes);
     }
    
-
-	@Override
-	public void setParser(VectorParser<T> parser) {
-		this.parser = parser;
-	}
 
 	@Override
 	public void indexVector(T vector) throws Exception {

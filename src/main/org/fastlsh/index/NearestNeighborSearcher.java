@@ -18,134 +18,63 @@ package org.fastlsh.index;
 import gnu.trove.iterator.TLongObjectIterator;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.set.hash.TLongHashSet;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.EOFException;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 
 import org.apache.commons.cli.CommandLine;
-import org.fastlsh.util.BitSetWithId;
-import org.fastlsh.util.LexicographicBitSetComparator;
+import org.fastlsh.util.LongStoreReader;
 import org.fastlsh.util.MathFns;
-import org.fastlsh.util.Permuter;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
 
 public class NearestNeighborSearcher
 {
-    BitSetWithId [] signatures;
-    TLongObjectHashMap<BitSetWithId> sigMap;
+    IndexReader reader;
     TLongObjectHashMap<double []> rawVectorMap;
-    Permuter permuter;
-    private int numBits;
-    
-    private void initializeRawVecs(String file) throws IOException
-    {
-        ObjectInputStream ois = null;
-        rawVectorMap = new TLongObjectHashMap<double []>();
-        try
-        {
-            ois = new ObjectInputStream(new FileInputStream(file));
-            VectorWithId vec = null;
-            do
-            {
-                vec = (VectorWithId) ois.readObject();
-                rawVectorMap.put(vec.id, vec.vals);
-            }while(vec != null);
-        }
-        catch(EOFException e)
-        {
-            //This always happens when you read multiple objects via objectinputstream. Don't know of any good way around it
-        }
-        catch (ClassNotFoundException e)
-        {
-			throw new RuntimeException(e);
-		}
-        finally
-        {
-            ois.close();
-        }
-    }
+    LongStoreReader [] permutationLists;
 
-    public static void permute(Permuter p, BitSetWithId [] sigs)
+    int maxPermutations;
+    public NearestNeighborSearcher(String indexDir) throws FileNotFoundException, IOException, ClassNotFoundException, InvalidIndexException
     {
-        p.reset();
-        for(int i = 0, max = sigs.length; i < max; i++) sigs[i] = new BitSetWithId(sigs[i].id, p.permute(sigs[i].bits));
-        Arrays.sort(sigs, new LexicographicBitSetComparator());
-        
+        reader = new IndexReader(indexDir);
+        reader.initializeOptions();
+        reader.initializePermutationIndex();
+        reader.initializeRawVecs();
+        rawVectorMap = reader.rawVectorMap;
+        maxPermutations = reader.options.numPermutations;
+        permutationLists = reader.permutationLists;
     }
     
-    public void permute()
+    public long [] getSimilars(long id, int beamRadius, int numPermutations) throws InvalidIndexException, IOException
     {
-        permute(permuter, signatures);
+        if(numPermutations > maxPermutations) throw(new InvalidIndexException(reader.rootDir, "Max  available permutations is: " + maxPermutations + ". " + numPermutations + " were requested"));
+        TLongHashSet sims = new TLongHashSet();
+        if(!reader.permutationIndex.containsKey(id)) return null;
+        int [] positions = reader.permutationIndex.get(id);
+        if(maxPermutations != positions.length) throw(new InvalidIndexException(reader.rootDir, "Found invalid number of permutations: " + positions.length+ " for input id: " + id));
+        for(int i = 0; i < numPermutations; i++)
+        {
+            getSimilars(positions[i], beamRadius, permutationLists[i], sims);
+        }        
+        return sims.toArray();
     }
     
-    private void initializeSignatures(String file) throws IOException
+    protected void getSimilars(long pos, int beamRadius, LongStoreReader r, TLongHashSet output) throws IOException
     {
-        ObjectInputStream ois = null;
-        ArrayList<BitSetWithId> tempSigs = new ArrayList<BitSetWithId>();
-        sigMap = new TLongObjectHashMap<BitSetWithId>();
-        try
-        {
-            ois = new ObjectInputStream(new FileInputStream(file));
-            BitSetWithId sig = null;
-            do
-            {
-                sig = (BitSetWithId) ois.readObject();
-                tempSigs.add(sig);
-                sigMap.put(sig.id, sig);
-            }while(sig != null);
-        }
-        catch(EOFException e)
-        {
-            //This always happens when you read multiple objects via objectinputstream. Don't know of any good way around it
-        }
-        catch (ClassNotFoundException e)
-        {
-			throw new RuntimeException(e);
-		}
-        finally
-        {
-            ois.close();
-        }
-        signatures = tempSigs.toArray(new BitSetWithId[tempSigs.size()]);
+        long max = Math.min(r.length(), (long)pos+beamRadius);
+        long min = Math.max(0, (long)pos-beamRadius);
+        long [] ids = r.get(min, max);
+        output.addAll(ids);
     }
     
-    public NearestNeighborSearcher(String bitSetFile, String rawVecFile) throws FileNotFoundException, IOException
-    {
-        initializeRawVecs(rawVecFile);
-        initializeSignatures(bitSetFile);
-        numBits = signatures[0].bits.numBits;
-        permuter = new Permuter(numBits);
-    }
-
-    public long [] getSimilars(long id, int beamRadius)
-    {
-        BitSetWithId search = sigMap.get(id);
-        if(search == null) return null;
-        TLongArrayList retval = new TLongArrayList();
-        
-        int idx = Arrays.binarySearch(signatures, search, new LexicographicBitSetComparator());
-        int bottom = Math.max(idx-beamRadius, 0);
-        int top = Math.min(idx+beamRadius, signatures.length);
-        
-        for(int i = bottom; i <= top; i++)
-        {
-            retval.add(signatures[i].id);
-        }
-        return retval.toArray();
-    }
-
     public LongDoublePair [] getDistances(long srcId, long [] inputs)
     {
         return getDistances(srcId, inputs, 0.0);
@@ -167,9 +96,10 @@ public class NearestNeighborSearcher
         return tmp.toArray(new LongDoublePair[tmp.size()]);
     }
     
-    public LongDoublePair[] getScoredSimilars(long id, int beamRadius, double minScore)
+    public LongDoublePair[] getScoredSimilars(long id, int beamRadius, int numPermutations, double minScore) throws InvalidIndexException, IOException
     {
-        LongDoublePair[] retval = getDistances(id, getSimilars(id, beamRadius), minScore);
+        
+        LongDoublePair[] retval = getDistances(id, getSimilars(id, beamRadius, numPermutations), minScore);
         if (retval != null) Arrays.sort(retval, new LongDoublePair.DescendingDComparator());
         return retval;
     }
@@ -198,50 +128,33 @@ public class NearestNeighborSearcher
     {
         CommandLine cmd = new SimpleCli()
         .addOption(new RequiredOption("i", true, "text file list of target ids, one per line"))
-        .addOption(new RequiredOption("r", true, "file containing serialized raw vectors"))
-        .addOption(new RequiredOption("s", true, "file containing serialized bitset signatures"))
+        .addOption(new RequiredOption("idx", true, "directory containing index"))
         .addOption(new RequiredOption("o", true, "output file"))
         .addOption(new RequiredOption("b", true, "beamwidth to search for within sorted bitset arrays"))
         .addOption(new RequiredOption("p", true, "number of permutations to use in getting similars"))        
         .addOption(new RequiredOption("m", true, "minimum cosine similarity to take (-1 will take anything)")).parse(args);
         
-        NearestNeighborSearcher searcher = new NearestNeighborSearcher(cmd.getOptionValue("s"), cmd.getOptionValue("r"));
+        NearestNeighborSearcher searcher = new NearestNeighborSearcher(cmd.getOptionValue("idx"));
         int beamWidth = Integer.parseInt(cmd.getOptionValue("b"));
         double minScore = Double.parseDouble(cmd.getOptionValue("m"));
         int numPermutations = Integer.parseInt(cmd.getOptionValue("p"));
         
         long [] targetIds = getTargetIds(cmd.getOptionValue("i"));
-        TLongObjectHashMap<HashSet<LongDoublePair>> allSims = new TLongObjectHashMap<HashSet<LongDoublePair>>();
-        for(int i = 0; i < numPermutations; i++)
+        TLongObjectHashMap<LongDoublePair []> allSims = new TLongObjectHashMap<LongDoublePair []>();
+
+        for(long id : targetIds)
         {
-            searcher.permute();
-            for(long tid : targetIds)
-            {
-                HashSet<LongDoublePair> sims = allSims.get(tid);
-                if(sims == null)
-                {
-                    sims = new HashSet<LongDoublePair>();
-                    allSims.put(tid, sims);
-                }
-                LongDoublePair [] newSims = searcher.getScoredSimilars(tid, beamWidth, minScore);
-                if (newSims != null) sims.addAll(Arrays.asList(newSims));
-            }
+            LongDoublePair [] sims = searcher.getScoredSimilars(id, beamWidth, numPermutations, minScore);
+            if(sims != null) allSims.put(id, sims);
         }
-        
-        //TODO: serialize output
-        
         BufferedWriter writer = new BufferedWriter(new FileWriter(cmd.getOptionValue("o")));
-        TLongObjectIterator<HashSet<LongDoublePair>> ids = allSims.iterator();
+        TLongObjectIterator<LongDoublePair []> ids = allSims.iterator();
         while(ids.hasNext()) {
         	ids.advance();
         	long id = ids.key();
         	writer.write(id + "\n--------------\n");
-        	HashSet<LongDoublePair> sims = allSims.get(id);
-        	Iterator<LongDoublePair> similars = sims.iterator();
-        	while(similars.hasNext()) {
-        		LongDoublePair similar = similars.next();
-        		writer.write(similar.l + "," + similar.d + "\n");
-        	}
+        	LongDoublePair [] sims = allSims.get(id);
+        	for(LongDoublePair similar : sims) writer.write(similar.l + "," + similar.d + "\n");
         	writer.write("\n\n");
         }
         writer.flush();
