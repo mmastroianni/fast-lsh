@@ -1,14 +1,7 @@
 package org.fastlsh.index;
 
-import gnu.trove.iterator.TLongObjectIterator;
-import gnu.trove.map.hash.TLongObjectHashMap;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 
 import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
@@ -17,7 +10,6 @@ import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 
 import org.fastlsh.util.BitSetWithId;
-import org.fastlsh.util.LexicographicBitSetComparator;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -25,26 +17,6 @@ import org.junit.Test;
 
 public class TestMultiVsSingleThreaded
 {
-    // lifted from guava
-    public static File createTempDir()
-    {
-        File baseDir = new File(System.getProperty("java.io.tmpdir"));
-        String baseName = System.currentTimeMillis() + "-";
-
-        for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++)
-        {
-            File tempDir = new File(baseDir, baseName + counter);
-            if (tempDir.mkdir())
-            {
-                return tempDir;
-            }
-        }
-        throw new IllegalStateException("Failed to create directory within "
-                + TEMP_DIR_ATTEMPTS + " attempts (tried " + baseName + "0 to "
-                + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')');
-    }
-
-    private static final int TEMP_DIR_ATTEMPTS = 10000;
 
     String                   input;
     String                   singleOutput      = "/data/fast_lsh/sm_test/single";
@@ -57,70 +29,22 @@ public class TestMultiVsSingleThreaded
     protected void generateSingleThreadedIndex(IndexOptions options,
             VectorParser<String> parser) throws IOException
     {
-        BufferedReader reader = null;
-        RandomProjectionIndexer<String> indexer = null;
-
-        try
-        {
-            indexer = new RandomProjectionIndexer<String>(singleOutput, options);
-            indexer.setParser(parser);
-            reader = new BufferedReader(new FileReader(input));
-            String line = "";
-            int numLines = 0;
-            while ((line = reader.readLine()) != null)
-            {
-                indexer.indexVector(line.trim());
-                numLines++;
-            }
-            Assert.assertEquals(numRows, numLines);
-
-        }
-        finally
-        {
-            if (reader != null)  reader.close();
-            if (indexer != null) indexer.close();
-        }
+        Assert.assertEquals(numRows, IndexUtils.generateSingleThreadedIndex(options, parser, input, singleOutput));
     }
 
     private void generateMultiThreadedIndex(IndexOptions options,
             org.fastlsh.parsers.VectorParser<String> parser) throws Exception
     {
-        BufferedReader reader = null;
-        ThreadedRandomProjectionIndexer<String> indexer = null;
-        try
-        {
-            indexer = new ThreadedRandomProjectionIndexer<String>(multiOutput, options, 16, 10000);
-            indexer.setParser(parser);
-            reader = new BufferedReader(new FileReader(input));
-            String line = null;
-            while ((line = reader.readLine()) != null)
-            {
-                indexer.indexVector(line.trim());
-            }
-        }
-        finally
-        {
-            if (reader != null) reader.close();
-            if (indexer != null) indexer.close();
-        }
+        IndexUtils.generateMultiThreadedIndex(options, parser, input, multiOutput);
     }
 
-    protected void delete(String f)
-    {
-        try
-        {
-            File tmp = new File(f);
-            tmp.delete();
-        }
-        catch (Exception e){}
-    }
 
     @After
     public void tearDown()
     {
-        delete(input);
-        delete(singleOutput);
-        delete(multiOutput);
+        IndexUtils.delete(input);
+        IndexUtils.delete(singleOutput);
+        IndexUtils.delete(multiOutput);
     }
 
     @Test
@@ -159,38 +83,10 @@ public class TestMultiVsSingleThreaded
         BitSetWithId[] sigs2 = reader2.signatures;
         Assert.assertEquals(numRows, sigs1.length);
         Assert.assertEquals(sigs1.length, sigs2.length);
-        Assert.assertTrue(areSame(sigs1, sigs2));
+        Assert.assertTrue(IndexUtils.areSame(sigs1, sigs2));
 
         Assert.assertEquals(numRows, reader1.rawVectorMap.size());
-        Assert.assertTrue(areSame(reader1.rawVectorMap, reader2.rawVectorMap));
+        Assert.assertTrue(IndexUtils.areSame(reader1.rawVectorMap, reader2.rawVectorMap));
     }
 
-    private boolean areSame(BitSetWithId[] sigs1, BitSetWithId[] sigs2)
-    {
-        Comparator<BitSetWithId> comp = new LexicographicBitSetComparator();
-        Arrays.sort(sigs1, comp);
-        Arrays.sort(sigs2, comp);
-        for (int i = 0, m = sigs1.length; i < m; i++)
-        {
-            if (sigs1[i].id != sigs2[i].id)
-                return false;
-            Assert.assertArrayEquals(sigs1[i].bits.bits, sigs2[i].bits.bits);
-        }
-        return true;
-    }
-
-    private boolean areSame(TLongObjectHashMap<double[]> map1,
-            TLongObjectHashMap<double[]> map2)
-    {
-        if (map1.size() != map2.size())
-            return false;
-        TLongObjectIterator<double[]> iter = map1.iterator();
-        while (iter.hasNext())
-        {
-            iter.advance();
-            if (!Arrays.equals(iter.value(), map2.get(iter.key())))
-                return false;
-        }
-        return true;
-    }
 }

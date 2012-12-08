@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.fastlsh.util.BitSet;
 import org.fastlsh.util.BitSetWithId;
@@ -31,16 +32,18 @@ public class IndexReader
         
     }
     
-    public void initialize() throws InvalidIndexException, IOException
+    public void initialize() throws InvalidIndexException, IOException, ClassNotFoundException
     {
         File root = new File(rootDir);
         if(!(root.exists() && root.isDirectory())) throw(new InvalidIndexException(rootDir, "Root dir not present or not a directory"));
         initializeOptions();
     }
 
-    protected void initializeOptions()
+    protected void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
     {
-        
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.options)));
+        options = (IndexOptions) ois.readObject();
+        ois.close();
     }
     
     public  void initializeRawVecs() throws InvalidIndexException, IOException
@@ -74,25 +77,19 @@ public class IndexReader
             }
         });
         if(perms.length != options.numPermutations) throw(new InvalidIndexException(rootDir, "Expected " + options.numPermutations + " permutation lists, but found " + perms.length)); 
+        Arrays.sort(perms);
         permutationLists = new LongStoreReader [options.numPermutations];
         for(int i = 0; i < options.numPermutations; i++)
         {
             String permName = perms[i];
-            int permIdx = extractPermIdx(rootDir, permName);
-            permutationLists[permIdx] = new LongStoreReader(new File(rawDir, permName).getAbsolutePath());
+            permutationLists[i] = new LongStoreReader(new File(rawDir, permName).getAbsolutePath());
         }
-    }
-    
-    protected static int extractPermIdx(String root, String name) throws InvalidIndexException
-    {
-        if(!name.contains(Constants.permutationHead)) throw new InvalidIndexException(root, "found invalid permutation list name: " + name);
-        return Integer.parseInt(name.substring(name.indexOf("_")));
     }
     
     @SuppressWarnings("unchecked")
     public void initializePermutationIndex() throws FileNotFoundException, IOException, ClassNotFoundException
     {
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.idMap)));
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.permutations + "/" + Constants.idMap)));
         permutationIndex = (TLongObjectHashMap<int []>) ois.readObject();
         ois.close();
     }

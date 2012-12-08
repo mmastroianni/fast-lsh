@@ -47,6 +47,7 @@ public class NearestNeighborSearcher
         reader = new IndexReader(indexDir);
         reader.initializeOptions();
         reader.initializePermutationIndex();
+        reader.initializePermutationLists();
         reader.initializeRawVecs();
         rawVectorMap = reader.rawVectorMap;
         maxPermutations = reader.options.numPermutations;

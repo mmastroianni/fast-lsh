@@ -59,7 +59,7 @@ public class CSVIndexer {
 
         IndexReader idxReader = new IndexReader(indexer.rootDirName);
         idxReader.initializeSignatures();
-        PermutationIndexWriter permWriter = new PermutationIndexWriter(indexer.rootDirName, idxReader.signatures, 42, options);
+        PermutationIndexWriter permWriter = new PermutationIndexWriter(indexer.rootDirName, idxReader.signatures, options);
         permWriter.createIndex();
 
         long end = System.currentTimeMillis();

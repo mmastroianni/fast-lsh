@@ -25,14 +25,14 @@ public class PermutationIndexWriter
     Permuter permuter;
     TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
 
-    public PermutationIndexWriter(String indexDir, BitSetWithId [] signatures, int numPermutations, IndexOptions options) throws OutputAlreadyExistsException
+    public PermutationIndexWriter(String indexDir, BitSetWithId [] signatures, IndexOptions options) throws OutputAlreadyExistsException
     {
-        this.topLevelIndexDir= rootDir;
-        File rootDirHandle = new File(rootDir, Constants.permutations);
+        topLevelIndexDir = indexDir;
+        File rootDirHandle = new File(topLevelIndexDir, Constants.permutations);
         FileUtils.mkdirs(rootDirHandle);
         rootDir = rootDirHandle.getAbsolutePath();
         this.signatures = signatures;
-        this.numPermutations = numPermutations;    
+        this.numPermutations = options.numPermutations;    
         this.permuter = new Permuter(options.numHashes);
 
         initializeMap();
@@ -52,7 +52,7 @@ public class PermutationIndexWriter
     
     protected void serializePermutationIndex(int idx, long [] values) throws IOException
     {
-        File tmp = new File(rootDir, Constants.permutationHead + 1);
+        File tmp = new File(rootDir, Constants.permutationHead + idx);
         LongStoreReader.createLongStore(values, tmp.getAbsolutePath());
     }
     
