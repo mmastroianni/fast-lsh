@@ -19,6 +19,12 @@ import java.util.Random;
 
 public class HashFactory
 {
+	/**
+	 * Makes an LSH family for cosine similarity.
+	 * @param vecLen the dimension of the data vectors to be hashed
+	 * @param familySize the number of hash functions to include in the family
+	 * @return an array containing the functions comprising the family
+	 */
     public static HashFunction [] makeProjectionHashFamily(int vecLen, int familySize)
     {
         HashFunction [] retval = new HashFunction[familySize];

@@ -32,6 +32,11 @@ public class HashFamily implements Serializable
         hashes = hs;
     }
     
+    /**
+     * Generates the LSH signature corresponding to the input data vector and the family of hash functions.
+     * @param input the input vector whose signature is desired
+     * @return the LSH signature for the input vector
+     */
     public BitSet makeSignature(VectorWithId input)
     {
         BitSet retval = new BitSet(hashes.length);

@@ -25,12 +25,20 @@ public class BitSet implements Serializable, Cloneable
     public final long[]      bits;
     public final int numBits;
     
+    /** Creates a copy of another BitSet
+     * 
+     * @param the bitset to copy
+     */
     public BitSet(BitSet other)
     {
         bits = other.bits.clone();
         numBits = other.numBits;
     }
 
+    /** Creates a BitSet with the specified number of bits.
+     * 
+     * @param numBits number of bits to store in the BitSet
+     */
     public BitSet(int numBits)
     {
         int numLongs = numBits >>> 6;
@@ -42,36 +50,62 @@ public class BitSet implements Serializable, Cloneable
         this.numBits = numBits;
     }
 
+    /** Creates a BitSet with the specified number of bits, to be initialized with the values encoded in an array of longs.
+     * 
+     * @param numBits number of bits to store
+     * @param bits array of longs encoding the bits 
+     */
     private BitSet(int numBits, long [] bits)
     {
         this.numBits = numBits;
         this.bits = bits;
     }
     
+    /** Gets the bit stored at a particular index.
+     * 
+     * @param index index whose bit is desired.
+     * @return
+     */
     public boolean get(int index)
     {
         // skipping range check for speed
         return (bits[index >>> 6] & 1L << (index & 0x3F)) != 0L;
     }
 
+    /** Sets a value to be stored in a bit at a particular index.
+     * 
+     * @param index index to store the bit
+     * @param b boolean encoding of the bit to be stored
+     */
     public void set(int index, boolean b)
     {
         if(b) bits[index >>> 6] |= 1L << (index & 0x3F);
         else bits[index >>> 6] &= ~(1L << (index & 0x3F));
     }
     
+    /** Sets the bit at a specified index to 1.
+     * 
+     * @param index index whose value is to be set to 1
+     */
     public void set(int index)
     {
         // skipping range check for speed
         bits[index >>> 6] |= 1L << (index & 0x3F);
     }
 
+    /**
+     * ?
+     * @param index
+     */
     public void clear(int index)
     {
         // skipping range check for speed
         bits[index >>> 6] &= ~(1L << (index & 0x3F));
     }
 
+    /** 
+     * ?
+     */
     public void clear()
     {
         int length = bits.length;
