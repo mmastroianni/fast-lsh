@@ -24,7 +24,7 @@ import org.fastlsh.util.BitSetWithId;
 import org.fastlsh.util.ResourcePool;
 
 
-public class IndexerTask<T> implements Runnable
+public class SignatureIndexWriterTask<T> implements Runnable
 {
     List<T> inputs;
     ResourcePool<ObjectOutputStream> vecWriters;
@@ -32,12 +32,12 @@ public class IndexerTask<T> implements Runnable
     VectorParser<T> parser;
     HashFamily family;
     
-    public IndexerTask()
+    public SignatureIndexWriterTask()
     {
         
     }
     
-    public IndexerTask(ResourcePool<ObjectOutputStream> vecWriters,
+    public SignatureIndexWriterTask(ResourcePool<ObjectOutputStream> vecWriters,
                        ResourcePool<ObjectOutputStream> sigWriters, 
                        List<T> curList, 
                        VectorParser<T> parser,

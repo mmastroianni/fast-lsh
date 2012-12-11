@@ -15,7 +15,6 @@
 package org.fastlsh.index;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,31 +30,38 @@ import org.apache.commons.cli.Option;
 import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
-import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.util.BlockingThreadPool;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.ResourcePool;
 import org.fastlsh.util.SimpleCli;
+/**
+ * Main entry point for creating an approximate nearest neighbor index given a .csv file containing a (dense) representation of input vectors
+ * Calling the main function of this class with the appropriate arguments will create a searchable index, which can be read using the IndexReader class,
+ * and searched using the NearestNeighborSearcher class
+ * 
+ * <br>USE AT OWN RISK. 
+ * 
+ * <br>This may be deleted soon, to be replaced with a hadoop version. In any event, until this message has been removed, consider CSVIndexer to be the safe version to be used
+ */
+public class ThreadedRandomProjectionIndexer<T> extends SignatureIndexWriter<T>
+{
+    static String                            defaultThreads = "10";
+    static String                            sigHead        = "signature_";
+    static String                            vecHead        = "vector_";
 
+    private List<T>                          curList;
+    private BlockingThreadPool               pool;
+    private ResourcePool<ObjectOutputStream> vecWriters;
+    private ResourcePool<ObjectOutputStream> sigWriters;
+    private int                              batchSize;
+    private HashFamily                       family;
 
-public class ThreadedRandomProjectionIndexer<T> extends Indexer<T> implements Closeable
-{   
-    static String defaultThreads = "10";
-    static String sigHead = "signature_";
-    static String vecHead = "vector_";
-    
-	private List<T> curList;
-	private BlockingThreadPool pool;
-	private ResourcePool<ObjectOutputStream> vecWriters;
-	private ResourcePool<ObjectOutputStream> sigWriters;
-	private VectorParser<T> parser;
-    private int batchSize;
-    private HashFamily family;
-
-	public ThreadedRandomProjectionIndexer(String directory, IndexOptions options, int numThreads, int batchSize) throws IOException
+    public ThreadedRandomProjectionIndexer(String directory,
+            IndexOptions options, int numThreads, int batchSize)
+            throws IOException
     {
-	    super(directory, options);
-    	this.batchSize = batchSize;
+        super(directory, options);
+        this.batchSize = batchSize;
         curList = new ArrayList<T>();
 
         vecWriters = allocateWriters(new File(directory, Constants.normalizedVectors), vecHead, numThreads);
@@ -65,20 +71,24 @@ public class ThreadedRandomProjectionIndexer<T> extends Indexer<T> implements Cl
         family = options.hashFamily;
         pool = new BlockingThreadPool(numThreads, numThreads);
     }
-    
-    protected static ResourcePool<ObjectOutputStream> allocateWriters(File directory, String fileNameHead, int numWriters) throws FileNotFoundException, IOException
+
+    protected static ResourcePool<ObjectOutputStream> allocateWriters(
+            File directory, String fileNameHead, int numWriters)
+            throws FileNotFoundException, IOException
     {
         directory.mkdirs();
         ResourcePool<ObjectOutputStream> p = new ResourcePool<ObjectOutputStream>();
-        for(int i = 0; i < numWriters; i++)
+        for (int i = 0; i < numWriters; i++)
         {
-            p.add(new ObjectOutputStream(new FileOutputStream(new File(directory, fileNameHead + i))));
+            p.add(new ObjectOutputStream(new FileOutputStream(new File(
+                    directory, fileNameHead + i))));
         }
         p.open();
         return p;
     }
 
-    protected static void closeHandles(ResourcePool<ObjectOutputStream> pool) throws InterruptedException, IOException
+    protected static void closeHandles(ResourcePool<ObjectOutputStream> pool)
+            throws InterruptedException, IOException
     {
         do
         {
@@ -86,22 +96,22 @@ public class ThreadedRandomProjectionIndexer<T> extends Indexer<T> implements Cl
             oos.close();
             pool.removeNow(oos);
         }
-        while(pool.haveAvailable());
+        while (pool.haveAvailable());
         pool.close();
     }
-    
-    public static void main(String [] args) throws Exception
+
+    public static void main(String[] args) throws Exception
     {
         CommandLine cmd = new SimpleCli()
-        .addOption(new RequiredOption("i", true, "text file containing .csv of input data"))
-        .addOption(new RequiredOption("o", true, "output directory"))
-        .addOption(new RequiredOption("d", true, "dimension of vectors"))
-        .addOption(new RequiredOption("sep", true, "separator character delimiting fields in input"))        
-        .addOption(new RequiredOption("b", true, "batch size: number of lines to push into thread jobs"))
-        .addOption(new RequiredOption("n", true, "number of hashes in hash family"))
-        .addOption(new Option("t", true, "number of Threads"))
-        .parse(args);
-        
+                .addOption(new RequiredOption("i", true, "text file containing .csv of input data"))
+                .addOption(new RequiredOption("o", true, "output directory"))
+                .addOption(new RequiredOption("d", true, "dimension of vectors"))
+                .addOption(new RequiredOption("sep", true, "separator character delimiting fields in input"))
+                .addOption(new RequiredOption("b", true, "batch size: number of lines to push into thread jobs"))
+                .addOption(new RequiredOption("n", true, "number of hashes in hash family"))
+                .addOption(new Option("t", true, "number of Threads"))
+                .parse(args);
+
         IndexOptions options = new IndexOptions();
         options.numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         options.vectorDimension = Integer.parseInt(cmd.getOptionValue("d"));
@@ -109,63 +119,71 @@ public class ThreadedRandomProjectionIndexer<T> extends Indexer<T> implements Cl
 
         BufferedReader reader = null;
         int batchSize = Integer.parseInt(cmd.getOptionValue("b"));
-        int numThreads = Integer.parseInt(cmd.getOptionValue("t", defaultThreads));
+        int numThreads = Integer.parseInt(cmd.getOptionValue("t",
+                defaultThreads));
         long start = System.currentTimeMillis();
-        
+
         ThreadedRandomProjectionIndexer<String> indexer = null;
-        
+
         int numLines = 0;
         try
-        {            
-        	indexer = new ThreadedRandomProjectionIndexer<String>(cmd.getOptionValue("o"), options, numThreads, batchSize);
-        	indexer.setParser(new CSVParser(cmd.getOptionValue("sep")));
+        {
+            indexer = new ThreadedRandomProjectionIndexer<String>(cmd.getOptionValue("o"), options, numThreads, batchSize);
+            indexer.setParser(new CSVParser(cmd.getOptionValue("sep")));
             reader = new BufferedReader(new FileReader(cmd.getOptionValue("i")));
             String line = null;
-            while((line = reader.readLine()) != null)
+            while ((line = reader.readLine()) != null)
             {
                 indexer.indexVector(line.trim());
                 numLines++;
             }
-            indexer.writeOptions();
         }
         finally
         {
-            if(reader != null) reader.close();
-            if (indexer != null) {
-            	indexer.close();
+            if (reader != null)
+                reader.close();
+            if (indexer != null)
+            {
+                indexer.close();
             }
         }
-        
         long end = System.currentTimeMillis();
-        System.out.println("Elapsed time in seconds: " + ((end -start)/1000));
+        System.out
+                .println("Elapsed time in seconds: " + ((end - start) / 1000));
         System.out.println("Total items: " + numLines);
         System.out.println("input dimensions: " + options.vectorDimension);
         System.out.println("number of hashes: " + options.numHashes);
     }
-   
 
-	@Override
-	public void indexVector(T vector) throws Exception {
-		curList.add(vector);
-        if(curList.size() == batchSize)
+    @Override
+    public void indexVector(T vector) throws Exception
+    {
+        curList.add(vector);
+        if (curList.size() == batchSize)
         {
-            pool.execute(new IndexerTask<T>(vecWriters, sigWriters, curList, parser, family));
+            pool.execute(new SignatureIndexWriterTask<T>(vecWriters, sigWriters, curList,
+                    parser, family));
             curList = new ArrayList<T>();
         }
-	}
-	
-	public void close() throws IOException {
-		try {
-	    	if(curList.size() != 0) pool.execute(new IndexerTask<T>(vecWriters, sigWriters, curList, parser, family));
+    }
 
-	    	pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    public void close() throws IOException
+    {
+        try
+        {
+            if (curList.size() != 0)
+                pool.execute(new SignatureIndexWriterTask<T>(vecWriters, sigWriters,
+                        curList, parser, family));
 
-			closeHandles(vecWriters);
-			closeHandles(sigWriters);
-		}
-		catch (InterruptedException ex) {
-			// FIXME keep waiting?
-			throw new IOException(ex);
-		}
-	}
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+
+            closeHandles(vecWriters);
+            closeHandles(sigWriters);
+        }
+        catch (InterruptedException ex)
+        {
+            // FIXME keep waiting?
+            throw new IOException(ex);
+        }
+    }
 }

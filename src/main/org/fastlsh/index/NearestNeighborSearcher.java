@@ -30,18 +30,36 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
+import org.fastlsh.util.LongDoublePair;
 import org.fastlsh.util.LongStoreReader;
 import org.fastlsh.util.MathFns;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
 
+/**
+ * Class for doing approximate nearest neighbor search on and index built with one of the indexer classes. 
+ * Provides facilities for getting a list of (potentially) similar items straight from the permutation lists, as well as filtering them via a 
+ * min similarity using cosine distance on the raw vectors.
+ * 
+ * <br>For an example of use of this class, see the test in 
+ * org.fastlsh.index.TestSmallEnd2End in the test source tree
+ *
+ */
 public class NearestNeighborSearcher
 {
     IndexReader reader;
     TLongObjectHashMap<double []> rawVectorMap;
     LongStoreReader [] permutationLists;
-
     int maxPermutations;
+    
+    /**
+     * Create a searcher based on the output directory of one of our indexers
+     * @param indexDir
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws InvalidIndexException
+     */
     public NearestNeighborSearcher(String indexDir) throws FileNotFoundException, IOException, ClassNotFoundException, InvalidIndexException
     {
         reader = new IndexReader(indexDir);
@@ -54,6 +72,16 @@ public class NearestNeighborSearcher
         permutationLists = reader.permutationLists;
     }
     
+    /**
+     * Get all similar items within a particular distance in each of the first numPermutations permutations list. You can tune the number returned by altering either the beamwidth
+     * or the number of permutations used. Note that numPermutatiosn must be <= the number of permutation lists written out by the indexer: this class does not create new permutation lists
+     * @param id id of object to search for
+     * @param beamRadius max number greater and lesser than this object in each of the ordered permutation lists
+     * @param numPermutations number of permutations to use
+     * @return
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
     public long [] getSimilars(long id, int beamRadius, int numPermutations) throws InvalidIndexException, IOException
     {
         if(numPermutations > maxPermutations) throw(new InvalidIndexException(reader.rootDir, "Max  available permutations is: " + maxPermutations + ". " + numPermutations + " were requested"));
@@ -68,7 +96,15 @@ public class NearestNeighborSearcher
         return sims.toArray();
     }
     
-    protected void getSimilars(long pos, int beamRadius, LongStoreReader r, TLongHashSet output) throws IOException
+    /**
+     * Helper method for getSimilars(long id, int beamRadius, int numPermutations). 
+     * @param pos
+     * @param beamRadius
+     * @param r
+     * @param output
+     * @throws IOException
+     */
+    private void getSimilars(long pos, int beamRadius, LongStoreReader r, TLongHashSet output) throws IOException
     {
         long max = Math.min(r.length(), (long)pos+beamRadius);
         long min = Math.max(0, (long)pos-beamRadius);
@@ -76,11 +112,25 @@ public class NearestNeighborSearcher
         output.addAll(ids);
     }
     
+    /**
+     * For a given object in the index, return the distances for all objects specified in input list
+     * @param srcId object to check for 
+     * @param inputs array of ids of potential similar objects
+     * @return list of pairs of ids and scores 
+     */
     public LongDoublePair [] getDistances(long srcId, long [] inputs)
     {
         return getDistances(srcId, inputs, 0.0);
     }
     
+    /**
+     * For a given object in the index, return the distances for all objects specified in input list that have a 
+     * similarity score >= minScore
+     * @param srcId object to check for 
+     * @param inputs array of ids of potential similar objects
+     * @param minScore
+     * @return list of pairs of ids and scores, containing ids of only those objects that met scoring threshold
+     */
     public LongDoublePair [] getDistances(long srcId, long [] inputs, double minScore)
     {
         double [] src = rawVectorMap.get(srcId);
@@ -97,6 +147,17 @@ public class NearestNeighborSearcher
         return tmp.toArray(new LongDoublePair[tmp.size()]);
     }
     
+    /**
+     * Get list of similar items for input within beamRadius in first numPermutations permutation lists which have a similarity score 
+     * >= minScore 
+     * @param id id of object to search for
+     * @param beamRadius max number greater and lesser than this object in each of the ordered permutation lists
+     * @param numPermutations number of permutations to use
+     * @param minScore similarity threshold
+     * @return
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
     public LongDoublePair[] getScoredSimilars(long id, int beamRadius, int numPermutations, double minScore) throws InvalidIndexException, IOException
     {
         
@@ -105,6 +166,12 @@ public class NearestNeighborSearcher
         return retval;
     }
 
+    /**
+     * Helper method for batch file usage: read a list of object ids to search for near neighbors for, one per line, from an input text file
+     * @param inputFile text file containing ids, one per line
+     * @return
+     * @throws Exception
+     */
     protected static long [] getTargetIds(String inputFile) throws Exception
     {
         TLongArrayList tmp = new TLongArrayList();
@@ -125,6 +192,17 @@ public class NearestNeighborSearcher
         return tmp.toArray();
     }
     
+    /**
+     * Batch mode nearest neighbor search for a list of ids contained in a text file from an index directory
+     * @param args
+     * <br>-i input text file containing ids to search for, one per line
+     * <br>-idx directory containing search index
+     * <br>-o output file
+     * <br>-b beamwidth to search for in sorted permutation lists
+     * <br>-p number of permutations to use 
+     * <br>-m minimum cosine similarity to take (-1 will take anything)
+     * @throws Exception
+     */
     public static void main(String [] args) throws Exception
     {
         CommandLine cmd = new SimpleCli()

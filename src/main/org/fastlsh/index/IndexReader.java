@@ -16,6 +16,12 @@ import org.fastlsh.util.LongStoreReader;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
+/**
+ * Class for reading nearest neighbor search indices. An index is presumed to have raw vectors (for now, they are normalized by their l2 norms before being written to disk, in order to make 
+ * cosine distance calculations more efficient), a set of permutation lists, and a map from ids to arrays of offsets in the permutations (look up an id in the map, and get an array containing its offset
+ * in each of the sorted permutation lists
+ * 
+ */
 public class IndexReader
 {
     TLongObjectHashMap<BitSet> sigMap;
@@ -32,6 +38,12 @@ public class IndexReader
         
     }
     
+    /**
+     * On creation, the class simply checks that its directory exists, and that it can read in its metadata object (the Options object: perhaps this should be renamed)
+     * @throws InvalidIndexException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void initialize() throws InvalidIndexException, IOException, ClassNotFoundException
     {
         File root = new File(rootDir);
@@ -39,6 +51,12 @@ public class IndexReader
         initializeOptions();
     }
 
+    /**
+     * Read in meta data object written by the indexer
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     protected void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
     {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.options)));
@@ -46,7 +64,12 @@ public class IndexReader
         ois.close();
     }
     
-    public  void initializeRawVecs() throws InvalidIndexException, IOException
+    /**
+     * Read the raw vectors off of disk and into RAM. Can read in either a file or a directory, depending on how the indexer was configured
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
+    public void initializeRawVecs() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.normalizedVectors);
         if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Normalized Vectors file not present in this index"));
@@ -63,6 +86,35 @@ public class IndexReader
         }
     }
 
+    /**
+     * Helper method used by initializeRawVecs(). Reads in vectors for a particular vector in the rawvectors directory if it is a directory.
+     * @param file
+     * @throws IOException
+     */
+    private void initializeRawVecs(String file) throws IOException
+    {
+        ObjectInputStream ois = null;
+        try
+        {
+            ois = new ObjectInputStream(new FileInputStream(file));
+            VectorWithId vec = null;
+            do
+            {
+                vec = (VectorWithId) ois.readObject();
+                rawVectorMap.put(vec.id, vec.vals);
+            }while(vec != null);
+        }
+        catch(EOFException e) { /* This always happens when you read multiple objects via objectinputstream. Don't know of any good way around it */ }
+        catch (ClassNotFoundException e) { throw new RuntimeException(e); }
+        finally { ois.close(); }
+    }
+
+    
+    /**
+     * Initialize LongStoreReader objects for each of the permutation lists
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
     public void initializePermutationLists() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.permutations);
@@ -86,6 +138,12 @@ public class IndexReader
         }
     }
     
+    /**
+     * Initialize map from id => [offsets] where the offsets are into the permutation lists
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @SuppressWarnings("unchecked")
     public void initializePermutationIndex() throws FileNotFoundException, IOException, ClassNotFoundException
     {
@@ -94,24 +152,11 @@ public class IndexReader
         ois.close();
     }
     
-    private void initializeRawVecs(String file) throws IOException
-    {
-        ObjectInputStream ois = null;
-        try
-        {
-            ois = new ObjectInputStream(new FileInputStream(file));
-            VectorWithId vec = null;
-            do
-            {
-                vec = (VectorWithId) ois.readObject();
-                rawVectorMap.put(vec.id, vec.vals);
-            }while(vec != null);
-        }
-        catch(EOFException e) { /* This always happens when you read multiple objects via objectinputstream. Don't know of any good way around it */ }
-        catch (ClassNotFoundException e) { throw new RuntimeException(e); }
-        finally { ois.close(); }
-    }
-
+    /**
+     * Read bitset signatures from disk. This capability is primarily here for testing purposes.
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
     public void initializeSignatures() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.signatures);
@@ -126,7 +171,13 @@ public class IndexReader
         else initializeSignatures(rawDir.getAbsolutePath(), tempSigs);
         signatures = tempSigs.toArray(new BitSetWithId[tempSigs.size()]);
     }
-    
+
+    /**
+     * Helper method for initializeSignatures().
+     * @throws InvalidIndexException
+     * @throws IOException
+     */
+
     private void initializeSignatures(String file, ArrayList<BitSetWithId> tempSigs) throws IOException
     {
         ObjectInputStream ois = null;

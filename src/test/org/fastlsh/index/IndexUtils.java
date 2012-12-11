@@ -43,11 +43,11 @@ public class IndexUtils
             throws IOException
     {
         BufferedReader reader = null;
-        RandomProjectionIndexer<String> indexer = null;
+        RandomProjectionSignatureIndexWriter<String> indexer = null;
 
         try
         {
-            indexer = new RandomProjectionIndexer<String>(output, options);
+            indexer = new RandomProjectionSignatureIndexWriter<String>(output, options);
             indexer.setParser(parser);
             reader = new BufferedReader(new FileReader(input));
             String line = "";

@@ -13,7 +13,7 @@
    limitations under the License.
  */
 
-package org.fastlsh.index;
+package org.fastlsh.util;
 
 import java.util.Comparator;
 

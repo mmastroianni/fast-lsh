@@ -14,6 +14,7 @@
  */
 package org.fastlsh.index;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,16 +22,20 @@ import java.io.ObjectOutputStream;
 
 import org.fastlsh.parsers.VectorParser;
 
-public abstract class Indexer<T>
+public abstract class SignatureIndexWriter<T> implements Closeable
 {
     IndexOptions options;
     String rootDirName;
     protected VectorParser<T> parser;
 
-    public Indexer(String rootDirName, IndexOptions options)
+    public SignatureIndexWriter(String rootDirName, IndexOptions options) throws IOException
     {
         this.options = options;
         this.rootDirName = rootDirName;
+        File dir = new File(rootDirName);
+        if (dir.exists()) throw new IOException("Output directory exists: " + rootDirName);
+        dir.mkdir();        
+        writeOptions();
     }
 
     public abstract void indexVector(T vector) throws Exception;

@@ -24,26 +24,18 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.util.BitSetWithId;
 
 
-public class RandomProjectionIndexer<T> extends Indexer<T> implements Closeable
+public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWriter<T> implements Closeable
 {
 	private ObjectOutputStream rawStream;
 	private ObjectOutputStream sigStream;
 	private int numVectors;
 	private HashFamily family;
-	private File directory;
 
-	public RandomProjectionIndexer(String directory, IndexOptions options) throws IOException {
+	public RandomProjectionSignatureIndexWriter(String directory, IndexOptions options) throws IOException {
 	    super(directory, options);
-		this.options = options;
         family = options.hashFamily;
-		this.directory = new File(directory);
-		if (this.directory.exists()) throw new IOException("Output directory exists: " + directory);
-		this.directory.mkdir();		
-
 		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
         sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.signatures)));
-
-        writeOptions();
 	}
 		
 	@Override

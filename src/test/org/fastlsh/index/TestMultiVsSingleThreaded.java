@@ -76,8 +76,12 @@ public class TestMultiVsSingleThreaded
         generateMultiThreadedIndex(options, parser);
         IndexReader reader1 = new IndexReader(singleOutput);
         reader1.initialize();
+        reader1.initializeSignatures();
+        reader1.initializeRawVecs();
         IndexReader reader2 = new IndexReader(multiOutput);
         reader2.initialize();
+        reader2.initializeSignatures();
+        reader2.initializeRawVecs();
 
         BitSetWithId[] sigs1 = reader1.signatures;
         BitSetWithId[] sigs2 = reader2.signatures;

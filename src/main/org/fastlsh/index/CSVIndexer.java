@@ -17,8 +17,28 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 
+/**
+ * Main entry point for creating an approximate nearest neighbor index given a .csv file containing a (dense) representation of input vectors
+ * Calling the main function of this class with the appropriate arguments will create a searchable index, which can be read usoiin the IndexReader class,
+ * and searched using the NearestNeighborSearcher class
+ */
 public class CSVIndexer {
 
+    /**
+     * @param args specified at the commandline with -x syntax
+     * <br> -i input file containing delimited (dense) text representation of input vectors
+     * <br>-o output directory: this directory should not already exist: the application will try to create it, and throw if it already exists, in order to make it]
+     * harder to overwrite past work.
+     * <br>-d dimension of input vectors
+     * <br>-sep separator used in input file (typically comma or tab)
+     * <br>-np number of permutations to create for searching
+     * <br>-n number of hashes in hash family (number of bits in lsh signature)
+     * 
+     * @throws ParseException
+     * @throws IOException
+     * @throws InvalidIndexException
+     * @throws OutputAlreadyExistsException
+     */
     public static void main(String [] args) throws ParseException, IOException, InvalidIndexException, OutputAlreadyExistsException
     {
         CommandLine cmd = new SimpleCli()
@@ -37,12 +57,12 @@ public class CSVIndexer {
         VectorParser<String> parser = new CSVParser(cmd.getOptionValue("sep"));
         
         BufferedReader reader = null;
-        RandomProjectionIndexer<String> indexer = null;
+        RandomProjectionSignatureIndexWriter<String> indexer = null;
         int numLines = 0;
         long start = System.currentTimeMillis();
         try
         {
-        	indexer = new RandomProjectionIndexer<String>(cmd.getOptionValue("o"), options);
+        	indexer = new RandomProjectionSignatureIndexWriter<String>(cmd.getOptionValue("o"), options);
         	indexer.setParser(parser);
             reader = new BufferedReader(new FileReader(cmd.getOptionValue("i")));
             String line = "";
