@@ -17,6 +17,10 @@ package org.fastlsh.util;
 
 import java.io.Serializable;
 import java.util.Arrays;
+
+/** This class is used to store the LSH signature for a data point.
+ *  It contains the data point's id, along with the BitSet encoding its signature.
+ */
 public class BitSetWithId implements Serializable
 {
     private static final long serialVersionUID = 1503715050039353843L;

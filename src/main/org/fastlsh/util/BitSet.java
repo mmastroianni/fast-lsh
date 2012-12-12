@@ -94,7 +94,7 @@ public class BitSet implements Serializable, Cloneable
     }
 
     /**
-     * ?
+     * Sets the bit at a specified index to 0.
      * @param index
      */
     public void clear(int index)
@@ -104,7 +104,7 @@ public class BitSet implements Serializable, Cloneable
     }
 
     /** 
-     * ?
+     * Sets all the bits to 0.
      */
     public void clear()
     {

@@ -17,6 +17,9 @@ package org.fastlsh.util;
 
 import java.util.Comparator;
 
+/** This class contains a long and a double.  It encodes a near neighbor
+ *  by storing the neighbor's id and the similarity between it and the query point.
+ */
 public class LongDoublePair
 {
     public final long l;

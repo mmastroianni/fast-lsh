@@ -19,7 +19,9 @@ import java.util.Random;
 
 import org.fastlsh.index.VectorWithId;
 
-
+/** Implements an LSH hash functon for the cosine similarity.
+ *  See Charikar (2002).
+ */
 public class RandomProjection implements HashFunction, Serializable
 {
     private static final long serialVersionUID = -2460318038698014925L;

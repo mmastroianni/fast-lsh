@@ -1,5 +1,7 @@
 package org.fastlsh.util;
 
+/** This class contains several useful mathematical functions, all of
+ */
 public class MathFns {
 	/**
 	 * Computes the dot product between two equal-length arrays of doubles.

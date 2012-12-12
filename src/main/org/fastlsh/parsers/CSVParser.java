@@ -16,6 +16,11 @@ package org.fastlsh.parsers;
 
 import org.fastlsh.index.VectorWithId;
 
+/** This class is used to parse a CSV file that encodes dense vectors.
+ *  Each line of the file should encode data point.  First should come
+ *  the id of the point, then the delimiter, followed by a delimited sequence
+ *  of doubles.
+ */
 public class CSVParser implements VectorParser<String>
 {
     private String delim;

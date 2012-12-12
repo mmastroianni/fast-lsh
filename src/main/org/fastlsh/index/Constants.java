@@ -1,11 +1,14 @@
 package org.fastlsh.index;
 
+/**
+ * Contains constants that are used throughout the fast-lsh code.
+ */
 public class Constants
 {
     public final static String normalizedVectors = "normalizedVectors";
     public final static String signatures        = "signatures";
     public final static String permutations      = "permutations";
     public final static String permutationHead   = "permutation_";
-    public static String options = "options";
-    public static String idMap = "idMap";
+    public final static String options = "options";
+    public final static String idMap = "idMap";
 }

@@ -17,6 +17,10 @@ package org.fastlsh.util;
 
 import java.util.Random;
 
+/** Encodes a permutation and associated methods.  In particular,
+ *  it can generate a random permutation over the indices of a BitSet
+ *  and can be used to permute those indices.
+ */
 public class Permuter
 {
     Random rand = new Random();
@@ -35,6 +39,8 @@ public class Permuter
         return retval;
     }
 
+    /** Recalculates a new random permutation to be stored in the object.
+     */
     public void reset()
     {
         rand.nextInt();
@@ -46,6 +52,11 @@ public class Permuter
         }
     }
 
+    /** Permutes the bits in a BitSet.
+     * 
+     * @param input BitSet whose bits one wants to permute.
+     * @return a BitSet containing the permuted bits.
+     */
     public BitSet permute(BitSet input)
     {
         BitSet output = new BitSet(input);

@@ -14,12 +14,20 @@
  */
 package org.fastlsh.hash;
 
+import java.io.Serializable;
 import java.util.Random;
 
-import org.fastlsh.util.MathFns;
+import org.fastlsh.index.VectorWithId;
 
-public class L2Hash //implements HashFunction
+/** This class is designed to implement an LSH hash function for
+ *  Euclidean (l2) distance.  Howveer, we only hypothesize that this might work.
+ *  It has not yet been tested.  It will be tested, and if it works,
+ *  will be included in future versions.
+ */
+public class L2Hash implements HashFunction, Serializable
 {
+	private static final long serialVersionUID = 7514192857280806912L;
+	
     double [] projection;
     double offset;
     double binWidth;
@@ -35,8 +43,8 @@ public class L2Hash //implements HashFunction
         }
     }
 
-    //@Override
-    public boolean hash(double [] input) {
-    	return ( ((MathFns.dot(projection, input) - offset) / binWidth) % 2 ) == 0;
+    @Override
+    public boolean hash(VectorWithId input) {
+    	return ( ((input.dotProduct(projection) - offset) / binWidth) % 2 ) == 0;
     }
 }
