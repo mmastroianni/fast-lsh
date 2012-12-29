@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.VectorParser;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 import org.fastlsh.util.ResourcePool;
 
 
@@ -66,7 +66,7 @@ public class SignatureIndexWriterTask<T> implements Runnable
                 if(norm == 0.0) continue;
                 // Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
                 // cosine distances, we only have to do dot products
-                sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec)));
+                sigStream.writeObject(new Signature(vec.id, family.makeSignature(vec)));
                 vec.scalarDivide(norm);
                 vecStream.writeObject(vec);
             }

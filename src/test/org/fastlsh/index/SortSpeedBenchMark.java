@@ -23,15 +23,15 @@ import java.util.List;
 import java.util.Random;
 
 import org.fastlsh.util.BitSet;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 import org.fastlsh.util.LexicographicBitSetComparator;
 import org.fastlsh.util.Permuter;
 
 public class SortSpeedBenchMark
 {
-    public static BitSetWithId [] makeRandomBitSets(int numBitSets, int cardinality)
+    public static Signature [] makeRandomBitSets(int numBitSets, int cardinality)
     {
-        List<BitSetWithId> bitsetList = new ArrayList<BitSetWithId>(numBitSets);
+        List<Signature> bitsetList = new ArrayList<Signature>(numBitSets);
         int curId = 1;
         
         Random rand = new Random();
@@ -42,14 +42,14 @@ public class SortSpeedBenchMark
             {
                 if(rand.nextBoolean()) bs.set(i);
             }
-            bitsetList.add(new BitSetWithId(curId, bs));
+            bitsetList.add(new Signature(curId, bs));
             curId++;
         }
         while(curId <= numBitSets);
-        return bitsetList.toArray(new BitSetWithId[bitsetList.size()]);
+        return bitsetList.toArray(new Signature[bitsetList.size()]);
     }
     
-    public long [] getSimilars(BitSetWithId search, int beamRadius, BitSetWithId [] items, Comparator<BitSetWithId> comparator)
+    public long [] getSimilars(Signature search, int beamRadius, Signature [] items, Comparator<Signature> comparator)
     {
         TLongArrayList retval = new TLongArrayList();
         
@@ -69,7 +69,7 @@ public class SortSpeedBenchMark
         int numBitSets = Integer.parseInt(args[0]);
         int cardinality = Integer.parseInt(args[1]);
         long start = System.currentTimeMillis();        
-        BitSetWithId [] bitSets = makeRandomBitSets(numBitSets, cardinality);
+        Signature [] bitSets = makeRandomBitSets(numBitSets, cardinality);
         long end = System.currentTimeMillis();
         System.out.println("Took: " + (end - start) + " millis to initialize " + numBitSets + " bitsets of cardinality " + cardinality + ".");
 

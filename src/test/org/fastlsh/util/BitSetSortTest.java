@@ -21,7 +21,7 @@ import java.util.Collections;
 import junit.framework.Assert;
 
 import org.fastlsh.util.BitSet;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 import org.fastlsh.util.LexicographicBitSetComparator;
 import org.junit.Test;
 
@@ -76,12 +76,12 @@ public class BitSetSortTest
         b5.set(0);          
         b5.set(63);          
 
-        ArrayList<BitSetWithId> al = new ArrayList<BitSetWithId>();
-        al.add(new BitSetWithId(1,b1));
-        al.add(new BitSetWithId(2,b2));
-        al.add(new BitSetWithId(4,b4));
-        al.add(new BitSetWithId(3,b3));
-        al.add(new BitSetWithId(5,b5));
+        ArrayList<Signature> al = new ArrayList<Signature>();
+        al.add(new Signature(1,b1));
+        al.add(new Signature(2,b2));
+        al.add(new Signature(4,b4));
+        al.add(new Signature(3,b3));
+        al.add(new Signature(5,b5));
         
         Collections.sort(al, new LexicographicBitSetComparator());
         Assert.assertEquals(4, al.get(0).id);
@@ -110,11 +110,11 @@ public class BitSetSortTest
         b4.set(2);
         b4.set(3);
 
-        ArrayList<BitSetWithId> al = new ArrayList<BitSetWithId>();
-        al.add(new BitSetWithId(1,b1));
-        al.add(new BitSetWithId(2,b2));
-        al.add(new BitSetWithId(4,b4));
-        al.add(new BitSetWithId(3,b3));
+        ArrayList<Signature> al = new ArrayList<Signature>();
+        al.add(new Signature(1,b1));
+        al.add(new Signature(2,b2));
+        al.add(new Signature(4,b4));
+        al.add(new Signature(3,b3));
         
         Collections.sort(al, new LexicographicBitSetComparator());
         Assert.assertEquals(2, al.get(0).id);
@@ -148,12 +148,12 @@ public class BitSetSortTest
         b4.set(2);
         b4.set(3);
 
-        ArrayList<BitSetWithId> al = new ArrayList<BitSetWithId>();
-        al.add(new BitSetWithId(11,b11));
-        al.add(new BitSetWithId(1,b1));
-        al.add(new BitSetWithId(2,b2));
-        al.add(new BitSetWithId(4,b4));
-        al.add(new BitSetWithId(3,b3));
+        ArrayList<Signature> al = new ArrayList<Signature>();
+        al.add(new Signature(11,b11));
+        al.add(new Signature(1,b1));
+        al.add(new Signature(2,b2));
+        al.add(new Signature(4,b4));
+        al.add(new Signature(3,b3));
         
         Collections.sort(al, new LexicographicBitSetComparator());
         Assert.assertEquals(2, al.get(0).id);

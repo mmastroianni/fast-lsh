@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.fastlsh.parsers.VectorParser;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 import org.fastlsh.util.LexicographicBitSetComparator;
 import org.junit.Assert;
 
@@ -117,9 +117,9 @@ public class IndexUtils
         }
     }
 
-    public static boolean areSame(BitSetWithId[] sigs1, BitSetWithId[] sigs2)
+    public static boolean areSame(Signature[] sigs1, Signature[] sigs2)
     {
-        Comparator<BitSetWithId> comp = new LexicographicBitSetComparator();
+        Comparator<Signature> comp = new LexicographicBitSetComparator();
         Arrays.sort(sigs1, comp);
         Arrays.sort(sigs2, comp);
         for (int i = 0, m = sigs1.length; i < m; i++)

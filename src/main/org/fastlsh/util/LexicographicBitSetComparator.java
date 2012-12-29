@@ -16,7 +16,7 @@ package org.fastlsh.util;
 
 import java.util.Comparator;
 
-public class LexicographicBitSetComparator implements Comparator<BitSetWithId>
+public class LexicographicBitSetComparator implements Comparator<Signature>
 {
     public static boolean isLessThanUnsigned(long n1, long n2)
     {
@@ -24,7 +24,7 @@ public class LexicographicBitSetComparator implements Comparator<BitSetWithId>
     }
 
     @Override
-    public int compare(BitSetWithId bs1, BitSetWithId bs2)
+    public int compare(Signature bs1, Signature bs2)
     {
         int numBits = bs1.bits.numBits;
         if (numBits != bs2.bits.numBits)

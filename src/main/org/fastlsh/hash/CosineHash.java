@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -22,16 +22,16 @@ import org.fastlsh.index.VectorWithId;
 /** Implements an LSH hash functon for the cosine similarity.
  *  See Charikar (2002).
  */
-public class RandomProjection implements HashFunction, Serializable
+public class CosineHash implements HashFunction, Serializable
 {
     private static final long serialVersionUID = -2460318038698014925L;
 	
     double []projection;
-    public RandomProjection(int size) {
+    public CosineHash(int size) {
         this(size, new Random());
     }
     
-    public RandomProjection(int size, Random rand) {
+    public CosineHash(int size, Random rand) {
         projection = new double [size];
         for (int i = 0; i < size; i++) {
             projection[i] = rand.nextGaussian();

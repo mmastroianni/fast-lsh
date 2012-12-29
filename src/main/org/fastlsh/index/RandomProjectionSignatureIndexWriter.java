@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import org.fastlsh.hash.HashFamily;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 
 
 public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWriter<T> implements Closeable
@@ -48,7 +48,7 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
         if(norm == 0.0) return;
         //Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
         // cosine distances, we only have to do dot products
-        sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec)));
+        sigStream.writeObject(new Signature(vec.id, family.makeSignature(vec)));
         vec.scalarDivide(norm);
         rawStream.writeObject(vec);
         numVectors++;

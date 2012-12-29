@@ -21,12 +21,12 @@ import java.util.Arrays;
 /** This class is used to store the LSH signature for a data point.
  *  It contains the data point's id, along with the BitSet encoding its signature.
  */
-public class BitSetWithId implements Serializable
+public class Signature implements Serializable
 {
     private static final long serialVersionUID = 1503715050039353843L;
     public final long id;
     public final BitSet bits;
-    public BitSetWithId(long iid, BitSet bitset)
+    public Signature(long iid, BitSet bitset)
     {
         id = iid;
         bits = bitset;
@@ -34,7 +34,7 @@ public class BitSetWithId implements Serializable
     
     public String toString()
     {
-        return "[ id: " + id + " bits: " + bits.toString() + "]";    
+        return "[ id: " + id + " signature: " + bits.toString() + "]";    
     }
     
     @Override
@@ -42,8 +42,8 @@ public class BitSetWithId implements Serializable
     {
         if (other == null) return false;
         if (other == this) return true;
-        if (!(other instanceof BitSetWithId))return false;
-        BitSetWithId obs = (BitSetWithId)other;
+        if (!(other instanceof Signature))return false;
+        Signature obs = (Signature)other;
         return id == obs.id? Arrays.equals(bits.bits, obs.bits.bits):false;
     }
 }

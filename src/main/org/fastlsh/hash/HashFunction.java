@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -14,10 +14,12 @@
  */
 package org.fastlsh.hash;
 
+import java.io.Serializable;
+
 import org.fastlsh.index.VectorWithId;
 
 
-public interface HashFunction
+public interface HashFunction extends Serializable
 {
     public abstract boolean hash(VectorWithId input);
 }
