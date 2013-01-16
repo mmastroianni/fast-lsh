@@ -37,6 +37,9 @@ public class L2Hash implements HashFunction, Serializable
         for (int i = 0; i < dimension; i++) {
         	projection[i] = rand.nextGaussian();
         }
+        
+        offset = rand.nextDouble();  // change this to user-defined?
+        binWidth = 0.2;  // change this to user-defined?
     }
     
     public L2Hash(int dimension) {
@@ -45,6 +48,6 @@ public class L2Hash implements HashFunction, Serializable
 
     @Override
     public boolean hash(VectorWithId input) {
-    	return ( ((input.dotProduct(projection) - offset) / binWidth) % 2 ) == 0;
+    	return ( (int) ((input.dotProduct(projection) - offset) / binWidth) % 2 ) == 0;
     }
 }

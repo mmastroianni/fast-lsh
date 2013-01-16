@@ -38,7 +38,7 @@ public class IndexUtils
                 + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')');
     }
 
-    protected static int generateSingleThreadedIndex(IndexOptions options,
+    public static int generateSingleThreadedIndex(IndexOptions options,
             VectorParser<String> parser, String input, String output)
             throws IOException
     {
@@ -95,7 +95,7 @@ public class IndexUtils
         }
     }
 
-    static void delete(File f) throws IOException
+    public static void delete(File f) throws IOException
     {
         if (f.isDirectory())
         {

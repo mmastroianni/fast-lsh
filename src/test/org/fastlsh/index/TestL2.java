@@ -29,7 +29,7 @@ public class TestL2
     @Test
     public void test() throws Exception
     {
-        IndexUtils.delete(new File(output));       
+        IndexUtils.delete(new File(output));
         File tmp = File.createTempFile("test_vector_data", "dat");
         input = tmp.getAbsolutePath();
 //        tmp.delete();
