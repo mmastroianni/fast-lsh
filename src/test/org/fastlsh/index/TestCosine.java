@@ -13,15 +13,15 @@ import junit.framework.Assert;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
-import org.fastlsh.threshold.L2Threshold;
+import org.fastlsh.threshold.CosineThreshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
 import org.junit.Test;
 
-public class TestL2
+public class TestCosine
 {
     String input;
-    String output      = "/home/akapila/Desktop/lsh/l2";
+    String output      = "/home/akapila/Desktop/lsh/cosine";
     int    numHashes   = 128;
     int    numFeatures = 50;
     int    numRows     = 10000;
@@ -39,7 +39,7 @@ public class TestL2
         IndexOptions options = new IndexOptions();
         options.numHashes = numHashes;
         options.vectorDimension = numFeatures;
-        options.hashFamily = HashFamily.getL2HashFamily(options.vectorDimension, options.numHashes);
+        options.hashFamily = HashFamily.getCosineHashFamily(options.vectorDimension, options.numHashes);
         options.numPermutations = 5;
 
         VectorParser<String> parser = new CSVParser(",");
@@ -51,11 +51,11 @@ public class TestL2
         idxReader = null;
         NearestNeighborSearcher searcher = new NearestNeighborSearcher(output);
         int beamWidth = 10;
-        double maxDistance = 100;
+        double minSimilarity = -1;
         long [] targetIds = new long []{1,2,3,4,5,6,7,8,9};
 
-        Comparator<Neighbor> comparator = new Neighbor.DissimilarityComparator();
-        ScoreThreshold thresh = new L2Threshold(maxDistance);
+        Comparator<Neighbor> comparator = new Neighbor.SimilarityComparator();
+        ScoreThreshold thresh = new CosineThreshold(minSimilarity);
         TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
         for(long id : targetIds)
         {

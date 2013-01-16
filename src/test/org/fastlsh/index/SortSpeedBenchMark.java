@@ -74,7 +74,7 @@ public class SortSpeedBenchMark
         System.out.println("Took: " + (end - start) + " millis to initialize " + numBitSets + " bitsets of cardinality " + cardinality + ".");
 
         Permuter permuter = new Permuter(cardinality);
-        PermutationIndexWriter.permute(permuter, bitSets);
+        PermutationIndexWriter.permuteAndSort(permuter, bitSets);
         LexicographicBitSetComparator comparator = new LexicographicBitSetComparator();
         start = System.currentTimeMillis();
         Arrays.sort(bitSets, comparator);

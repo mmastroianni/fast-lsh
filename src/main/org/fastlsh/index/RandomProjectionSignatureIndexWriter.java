@@ -49,7 +49,7 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
         //Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
         // cosine distances, we only have to do dot products
         sigStream.writeObject(new Signature(vec.id, family.makeSignature(vec)));
-        vec.scalarDivide(norm);
+//        vec.scalarDivide(norm);
         rawStream.writeObject(vec);
         numVectors++;
         if(numVectors%10000 == 0)
@@ -61,7 +61,13 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
     
     @Override
     public void close() throws IOException {
-        if(rawStream != null) rawStream.close();
-        if(sigStream != null) sigStream.close();
+        if(rawStream != null) {
+        	rawStream.flush();
+        	rawStream.close();
+        }
+        if(sigStream != null) {
+        	sigStream.flush();
+        	sigStream.close();
+        }
     }
 }

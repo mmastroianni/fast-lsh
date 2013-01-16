@@ -65,7 +65,7 @@ public class PermutationIndexWriter
        oos.close();
     }
     
-    public static void permute(Permuter p, Signature [] sigs)
+    public static void permuteAndSort(Permuter p, Signature [] sigs)
     {
         p.reset();
         for(int i = 0, max = sigs.length; i < max; i++) sigs[i] = new Signature(sigs[i].id, p.permute(sigs[i].bits));
@@ -74,7 +74,7 @@ public class PermutationIndexWriter
 
     protected void createPermutationIndex(int permId) throws IOException
     {
-        permute(permuter, signatures);
+        permuteAndSort(permuter, signatures);
         long [] ids = new long [signatures.length];
         for(int i = 0, m = signatures.length; i < m; i++)
         {

@@ -129,12 +129,14 @@ public class NearestNeighborSearcher
      */
     public Neighbor [] getScoredSimilars(long srcId, int beamRadius, int numPermutations, Comparator<Neighbor> comparator, ScoreThreshold scoreThresh) throws InvalidIndexException, IOException
     {
-    	long [] inputs = getSimilars(srcId, beamRadius, numPermutations);
+    	long [] potentialSimilars = getSimilars(srcId, beamRadius, numPermutations);
+    	for (long l : potentialSimilars)
+    		System.out.println(l);
         double [] srcVec = rawVectorMap.get(srcId);
         if(srcVec == null) return null;
         ArrayList<Neighbor> tmp = new ArrayList<Neighbor>();
-        for(int i = 0, max = inputs.length; i < max; i++) {
-            long targetId = inputs[i];
+        for(int i = 0, max = potentialSimilars.length; i < max; i++) {
+            long targetId = potentialSimilars[i];
             double [] targetVec = rawVectorMap.get(targetId);
             double score = scoreThresh.score(srcVec, targetVec);
             if (scoreThresh.threshold(score)) tmp.add(new Neighbor(targetId, score));
