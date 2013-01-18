@@ -63,7 +63,7 @@ public class ThreadedRandomProjectionIndexer<T> extends SignatureIndexWriter<T>
         this.batchSize = batchSize;
         curList = new ArrayList<T>();
 
-        vecWriters = allocateWriters(new File(directory, Constants.normalizedVectors), vecHead, numThreads);
+        vecWriters = allocateWriters(new File(directory, Constants.inputData), vecHead, numThreads);
         vecWriters.open();
         sigWriters = allocateWriters(new File(directory, Constants.signatures), sigHead, numThreads);
         sigWriters.open();

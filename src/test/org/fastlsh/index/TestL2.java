@@ -13,6 +13,7 @@ import junit.framework.Assert;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
+import org.fastlsh.query.NearestNeighborSearcher;
 import org.fastlsh.threshold.L2Threshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
@@ -59,7 +60,7 @@ public class TestL2
         TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
         for(long id : targetIds)
         {
-            Neighbor [] sims = searcher.getScoredSimilars(id, beamWidth, options.numPermutations, comparator, thresh);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, 20, comparator, thresh);
             if(sims != null) allSims.put(id, sims);
             Assert.assertTrue(containsId(id, sims));
         }

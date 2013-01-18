@@ -38,7 +38,7 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
 	public RandomProjectionSignatureIndexWriter(String directory, IndexOptions options) throws IOException {
 	    super(directory, options);
         family = options.hashFamily;
-		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
+		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.inputData)));
         sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.signatures)));
         textWriter = new BufferedWriter(new FileWriter(new File(directory, "sigs.txt")));
 	}

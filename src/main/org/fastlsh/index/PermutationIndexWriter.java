@@ -11,7 +11,6 @@ import java.util.Arrays;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
-import org.fastlsh.util.NaiveBitSetComparator;
 import org.fastlsh.util.Signature;
 import org.fastlsh.util.FileUtils;
 import org.fastlsh.util.LexicographicBitSetComparator;

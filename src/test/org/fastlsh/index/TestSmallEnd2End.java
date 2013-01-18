@@ -8,6 +8,7 @@ import junit.framework.Assert;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
+import org.fastlsh.query.NearestNeighborSearcher;
 import org.fastlsh.threshold.L2Threshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
@@ -53,7 +54,7 @@ public class TestSmallEnd2End
         ScoreThreshold thresh = new L2Threshold(minScore);
         for(long id : targetIds)
         {
-            Neighbor [] sims = searcher.getScoredSimilars(id, beamWidth, options.numPermutations, comparator, thresh);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, -1, comparator, thresh);
             Assert.assertTrue(containsId(id, sims));
         }
 

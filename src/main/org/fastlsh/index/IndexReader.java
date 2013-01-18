@@ -24,13 +24,13 @@ import gnu.trove.map.hash.TLongObjectHashMap;
  */
 public class IndexReader
 {
-    TLongObjectHashMap<BitSet> sigMap;
-    Signature [] signatures;
-    TLongObjectHashMap<double []> rawVectorMap;
-    TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
-    IndexOptions options;
-    String rootDir;
-    LongStoreReader [] permutationLists;
+	public TLongObjectHashMap<BitSet> sigMap;
+    public Signature [] signatures;
+    public TLongObjectHashMap<double []> rawVectorMap;
+    public  TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
+    public IndexOptions options;
+    public String rootDir;
+    public LongStoreReader [] permutationLists;
 
     public IndexReader(String rootDir)
     {
@@ -57,7 +57,7 @@ public class IndexReader
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    protected void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
+    public void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
     {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.options)));
         options = (IndexOptions) ois.readObject();
@@ -71,7 +71,7 @@ public class IndexReader
      */
     public void initializeRawVecs() throws InvalidIndexException, IOException
     {
-        File rawDir = new File(rootDir, Constants.normalizedVectors);
+        File rawDir = new File(rootDir, Constants.inputData);
         if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Normalized Vectors file not present in this index"));
         rawVectorMap = new TLongObjectHashMap<double []>();
 

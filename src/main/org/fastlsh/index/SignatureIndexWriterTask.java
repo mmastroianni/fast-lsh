@@ -67,7 +67,7 @@ public class SignatureIndexWriterTask<T> implements Runnable
                 // Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
                 // cosine distances, we only have to do dot products
                 sigStream.writeObject(new Signature(vec.id, family.makeSignature(vec)));
-                vec.scalarDivide(norm);
+//                vec.scalarDivide(norm);
                 vecStream.writeObject(vec);
             }
             sigStream.reset();                    
