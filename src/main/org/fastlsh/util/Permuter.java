@@ -60,7 +60,10 @@ public class Permuter
     public BitSet permute(BitSet input)
     {
         BitSet output = new BitSet(input);
-        for (int i = 0, max = input.numBits; i < max; i++) if (input.get(i)) output.set(permutation[i]);
+        for (int i = 0, max = input.numBits; i < max; i++) {
+        	if (input.get(i)) output.set(permutation[i]);
+        	else output.clear(permutation[i]);
+        }
         return output;
     }
 }
