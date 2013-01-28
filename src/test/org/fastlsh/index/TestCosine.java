@@ -52,7 +52,7 @@ public class TestCosine
         idxReader = null;
         NearestNeighborSearcher searcher = new NearestNeighborSearcher(output);
         int beamWidth = 10;
-        double minSimilarity = -1;
+        double minSimilarity = 0.2;
         long [] targetIds = new long []{1,2,3,4,5,6,7,8,9};
 
         Comparator<Neighbor> comparator = new Neighbor.SimilarityComparator();
@@ -60,7 +60,7 @@ public class TestCosine
         TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
         for(long id : targetIds)
         {
-            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, 25, comparator, thresh);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, -1, comparator, thresh);
             if(sims != null) allSims.put(id, sims);
             Assert.assertTrue(containsId(id, sims));
         }

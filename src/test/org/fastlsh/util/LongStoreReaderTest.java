@@ -28,7 +28,7 @@ public class LongStoreReaderTest
             testArr[i] = (long)i;
         }
         dos.close();
-        LongStoreReader reader = new LongStoreReader(fileName);
+        LongStoreReaderDisk reader = new LongStoreReaderDisk(fileName);
         Assert.assertEquals(100, reader.length());
         for(int i = 0; i < len; i++) Assert.assertEquals(i, reader.get(i));
         long [] foo = reader.get(0, reader.length());

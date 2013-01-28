@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 import org.fastlsh.util.BitSet;
 import org.fastlsh.util.Signature;
-import org.fastlsh.util.LongStoreReader;
+import org.fastlsh.util.LongStoreReaderDisk;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
@@ -30,7 +30,7 @@ public class IndexReader
     public  TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
     public IndexOptions options;
     public String rootDir;
-    public LongStoreReader [] permutationLists;
+    public LongStoreReaderDisk [] permutationLists;
 
     public IndexReader(String rootDir)
     {
@@ -72,7 +72,7 @@ public class IndexReader
     public void initializeRawVecs() throws InvalidIndexException, IOException
     {
         File rawDir = new File(rootDir, Constants.inputData);
-        if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Normalized Vectors file not present in this index"));
+        if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Data file not present in this index."));
         rawVectorMap = new TLongObjectHashMap<double []>();
 
         if(rawDir.isDirectory())
@@ -130,11 +130,11 @@ public class IndexReader
         });
         if(perms.length != options.numPermutations) throw(new InvalidIndexException(rootDir, "Expected " + options.numPermutations + " permutation lists, but found " + perms.length)); 
         Arrays.sort(perms);
-        permutationLists = new LongStoreReader [options.numPermutations];
+        permutationLists = new LongStoreReaderDisk [options.numPermutations];
         for(int i = 0; i < options.numPermutations; i++)
         {
             String permName = perms[i];
-            permutationLists[i] = new LongStoreReader(new File(rawDir, permName).getAbsolutePath());
+            permutationLists[i] = new LongStoreReaderDisk(new File(rawDir, permName).getAbsolutePath());
         }
     }
     

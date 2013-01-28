@@ -14,7 +14,7 @@ import gnu.trove.map.hash.TLongObjectHashMap;
 import org.fastlsh.util.Signature;
 import org.fastlsh.util.FileUtils;
 import org.fastlsh.util.LexicographicBitSetComparator;
-import org.fastlsh.util.LongStoreReader;
+import org.fastlsh.util.LongStoreReaderDisk;
 import org.fastlsh.util.OutputAlreadyExistsException;
 import org.fastlsh.util.Permuter;
 
@@ -55,7 +55,7 @@ public class PermutationIndexWriter
     protected void serializePermutationIndex(int idx, long [] values) throws IOException
     {
         File tmp = new File(rootDir, Constants.permutationHead + idx);
-        LongStoreReader.createLongStore(values, tmp.getAbsolutePath());
+        LongStoreReaderDisk.createLongStore(values, tmp.getAbsolutePath());
         
         tmp = new File(rootDir, "textPerms" + idx + ".txt");
         BufferedWriter textWriter = new BufferedWriter(new FileWriter(tmp));

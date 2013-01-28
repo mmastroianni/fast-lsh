@@ -36,7 +36,7 @@ import org.fastlsh.index.InvalidIndexException;
 import org.fastlsh.threshold.L2Threshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
-import org.fastlsh.util.LongStoreReader;
+import org.fastlsh.util.LongStoreReaderDisk;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
 
@@ -53,7 +53,7 @@ public class NearestNeighborSearcher
 {
     IndexReader reader;
     TLongObjectHashMap<double []> rawVectorMap;
-    LongStoreReader [] permutationLists;
+    LongStoreReaderDisk [] permutationLists;
     int maxPermutations;
     
     /**
@@ -108,7 +108,7 @@ public class NearestNeighborSearcher
      * @param output
      * @throws IOException
      */
-    private void getNeighbors(long pos, int beamRadius, LongStoreReader r, TLongHashSet output) throws IOException
+    private void getNeighbors(long pos, int beamRadius, LongStoreReaderDisk r, TLongHashSet output) throws IOException
     {
         long max = Math.min(r.length(), (long)pos+beamRadius);
         long min = Math.max(0, (long)pos-beamRadius);
