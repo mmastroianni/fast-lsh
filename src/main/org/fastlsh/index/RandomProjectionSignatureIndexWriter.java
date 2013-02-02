@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import org.fastlsh.hash.HashFamily;
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 
 
 public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWriter<T> implements Closeable
@@ -34,7 +34,7 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
 	public RandomProjectionSignatureIndexWriter(String directory, IndexOptions options) throws IOException {
 	    super(directory, options);
         family = options.hashFamily;
-		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.normalizedVectors)));
+		rawStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.inputData)));
         sigStream = new ObjectOutputStream(new FileOutputStream(new File(directory, Constants.signatures)));
 	}
 		
@@ -45,11 +45,8 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
     
     public void indexVector(VectorWithId vec) throws IOException {
     	double norm = vec.norm2();
-        if(norm == 0.0) return;
-        //Compute the signatures non-normalized, but normalize the raw vectors before serialization so that when we check
-        // cosine distances, we only have to do dot products
-        sigStream.writeObject(new BitSetWithId(vec.id, family.makeSignature(vec)));
-        vec.scalarDivide(norm);
+        if(norm == 0.0) return;  // TODO: create a separate zeros file for these.
+        sigStream.writeObject(new Signature(vec.id, family.makeSignature(vec)));
         rawStream.writeObject(vec);
         numVectors++;
         if(numVectors%10000 == 0)
@@ -61,7 +58,13 @@ public class RandomProjectionSignatureIndexWriter<T> extends SignatureIndexWrite
     
     @Override
     public void close() throws IOException {
-        if(rawStream != null) rawStream.close();
-        if(sigStream != null) sigStream.close();
+        if(rawStream != null) {
+        	rawStream.flush();
+        	rawStream.close();
+        }
+        if(sigStream != null) {
+        	sigStream.flush();
+        	sigStream.close();
+        }
     }
 }

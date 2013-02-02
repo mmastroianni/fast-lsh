@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.util.BlockingThreadPool;
@@ -64,7 +63,7 @@ public class ThreadedRandomProjectionIndexer<T> extends SignatureIndexWriter<T>
         this.batchSize = batchSize;
         curList = new ArrayList<T>();
 
-        vecWriters = allocateWriters(new File(directory, Constants.normalizedVectors), vecHead, numThreads);
+        vecWriters = allocateWriters(new File(directory, Constants.inputData), vecHead, numThreads);
         vecWriters.open();
         sigWriters = allocateWriters(new File(directory, Constants.signatures), sigHead, numThreads);
         sigWriters.open();
@@ -115,7 +114,7 @@ public class ThreadedRandomProjectionIndexer<T> extends SignatureIndexWriter<T>
         IndexOptions options = new IndexOptions();
         options.numHashes = Integer.parseInt(cmd.getOptionValue("n"));
         options.vectorDimension = Integer.parseInt(cmd.getOptionValue("d"));
-        options.hashFamily = new HashFamily(HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
+        options.hashFamily = HashFamily.getCosineHashFamily(options.vectorDimension, options.numHashes);
 
         BufferedReader reader = null;
         int batchSize = Integer.parseInt(cmd.getOptionValue("b"));

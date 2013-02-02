@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -17,6 +17,7 @@ package org.fastlsh.hash;
 
 
 import java.io.Serializable;
+import java.util.Random;
 
 import org.fastlsh.index.VectorWithId;
 import org.fastlsh.util.BitSet;
@@ -46,4 +47,32 @@ public class HashFamily implements Serializable
         }
         return retval;
     }
+
+	/**
+	 * Makes an LSH family for cosine similarity.
+	 * @param dimension the dimension of the data vectors to be hashed
+	 * @param familySize the number of hash functions to include in the family
+	 * @return an array containing the functions comprising the family
+	 */
+	public static HashFamily getCosineHashFamily(int dimension, int familySize)
+	{
+	    HashFunction [] fns = new HashFunction[familySize];
+	    Random rand = new Random();
+	    for (int i = 0; i < familySize; i++) fns[i] = new CosineHash(dimension, rand);
+	    return new HashFamily(fns);
+	}
+	
+	/**
+	 * Makes an LSH family for Euclidean (L2) distance.
+	 * @param dimension the dimension of the data vectors to be hashed
+	 * @param familySize the number of hash functions to include in the family
+	 * @return an array containing the functions comprising the family
+	 */
+	public static HashFamily getL2HashFamily(int dimension, int familySize)
+	{
+	    HashFunction [] fns = new HashFunction[familySize];
+	    Random rand = new Random();
+	    for (int i = 0; i < familySize; i++) fns[i] = new L2Hash(dimension, rand);
+	    return new HashFamily(fns);
+	}
 }

@@ -13,7 +13,7 @@
    limitations under the License.
  */
 
-package org.fastlsh.index;
+package org.fastlsh.query;
 
 import gnu.trove.iterator.TLongObjectIterator;
 import gnu.trove.list.array.TLongArrayList;
@@ -28,11 +28,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.apache.commons.cli.CommandLine;
-import org.fastlsh.util.LongDoublePair;
-import org.fastlsh.util.LongStoreReader;
-import org.fastlsh.util.MathFns;
+import org.fastlsh.index.IndexReader;
+import org.fastlsh.index.InvalidIndexException;
+import org.fastlsh.threshold.L2Threshold;
+import org.fastlsh.threshold.ScoreThreshold;
+import org.fastlsh.util.Neighbor;
+import org.fastlsh.util.LongStoreReaderDisk;
 import org.fastlsh.util.RequiredOption;
 import org.fastlsh.util.SimpleCli;
 
@@ -49,7 +53,7 @@ public class NearestNeighborSearcher
 {
     IndexReader reader;
     TLongObjectHashMap<double []> rawVectorMap;
-    LongStoreReader [] permutationLists;
+    LongStoreReaderDisk [] permutationLists;
     int maxPermutations;
     
     /**
@@ -82,7 +86,7 @@ public class NearestNeighborSearcher
      * @throws InvalidIndexException
      * @throws IOException
      */
-    public long [] getSimilars(long id, int beamRadius, int numPermutations) throws InvalidIndexException, IOException
+    public long [] getNeighbors(long id, int beamRadius, int numPermutations) throws InvalidIndexException, IOException
     {
         if(numPermutations > maxPermutations) throw(new InvalidIndexException(reader.rootDir, "Max  available permutations is: " + maxPermutations + ". " + numPermutations + " were requested"));
         TLongHashSet sims = new TLongHashSet();
@@ -91,7 +95,7 @@ public class NearestNeighborSearcher
         if(maxPermutations != positions.length) throw(new InvalidIndexException(reader.rootDir, "Found invalid number of permutations: " + positions.length+ " for input id: " + id));
         for(int i = 0; i < numPermutations; i++)
         {
-            getSimilars(positions[i], beamRadius, permutationLists[i], sims);
+            getNeighbors(positions[i], beamRadius, permutationLists[i], sims);
         }        
         return sims.toArray();
     }
@@ -104,7 +108,7 @@ public class NearestNeighborSearcher
      * @param output
      * @throws IOException
      */
-    private void getSimilars(long pos, int beamRadius, LongStoreReader r, TLongHashSet output) throws IOException
+    private void getNeighbors(long pos, int beamRadius, LongStoreReaderDisk r, TLongHashSet output) throws IOException
     {
         long max = Math.min(r.length(), (long)pos+beamRadius);
         long min = Math.max(0, (long)pos-beamRadius);
@@ -112,58 +116,52 @@ public class NearestNeighborSearcher
         output.addAll(ids);
     }
     
-    /**
-     * For a given object in the index, return the distances for all objects specified in input list
-     * @param srcId object to check for 
-     * @param inputs array of ids of potential similar objects
-     * @return list of pairs of ids and scores 
-     */
-    public LongDoublePair [] getDistances(long srcId, long [] inputs)
-    {
-        return getDistances(srcId, inputs, 0.0);
-    }
-    
-    /**
-     * For a given object in the index, return the distances for all objects specified in input list that have a 
-     * similarity score >= minScore
-     * @param srcId object to check for 
-     * @param inputs array of ids of potential similar objects
-     * @param minScore
-     * @return list of pairs of ids and scores, containing ids of only those objects that met scoring threshold
-     */
-    public LongDoublePair [] getDistances(long srcId, long [] inputs, double minScore)
-    {
-        double [] src = rawVectorMap.get(srcId);
-        if(src == null) return null;
-        ArrayList<LongDoublePair> tmp = new ArrayList<LongDoublePair>();
-        for(int i = 0, max = inputs.length; i < max; i++)
-        {
-            long target = inputs[i];
-            double [] targetv = rawVectorMap.get(target);
-            double score = targetv == null? 0.0: MathFns.dot(src, targetv);
-            if(score > minScore) tmp.add(new LongDoublePair(target, score));
-        }
-        
-        return tmp.toArray(new LongDoublePair[tmp.size()]);
+    public Neighbor [] getScoredNeighbors(long srcId, int beamRadius, int numPermutations,
+    		Comparator<Neighbor> comparator, ScoreThreshold scoreThresh) throws InvalidIndexException, IOException {
+    	return getScoredNeighbors(srcId, beamRadius, numPermutations, Integer.MAX_VALUE, comparator, scoreThresh);
     }
     
     /**
      * Get list of similar items for input within beamRadius in first numPermutations permutation lists which have a similarity score 
      * >= minScore 
-     * @param id id of object to search for
+     * @param srcId id of object to search for
      * @param beamRadius max number greater and lesser than this object in each of the ordered permutation lists
      * @param numPermutations number of permutations to use
-     * @param minScore similarity threshold
+     * @param threshold similarity threshold
      * @return
      * @throws InvalidIndexException
      * @throws IOException
      */
-    public LongDoublePair[] getScoredSimilars(long id, int beamRadius, int numPermutations, double minScore) throws InvalidIndexException, IOException
+    public Neighbor [] getScoredNeighbors(long srcId, int beamRadius, int numPermutations, int maxNeighbors,
+    		Comparator<Neighbor> comparator, ScoreThreshold scoreThresh)
+    				throws InvalidIndexException, IOException
     {
+    	long [] potentialSimilars = getNeighbors(srcId, beamRadius, numPermutations);
+    	if (potentialSimilars == null) {
+    		return null;
+    	}
+        double [] srcVec = rawVectorMap.get(srcId);
+        if(srcVec == null) return null;
+        ArrayList<Neighbor> tmp = new ArrayList<Neighbor>();
+        for(int i = 0, max = potentialSimilars.length; i < max; i++) {
+            long targetId = potentialSimilars[i];
+            double [] targetVec = rawVectorMap.get(targetId);
+            double score = scoreThresh.score(srcVec, targetVec);
+            if (scoreThresh.threshold(score)) tmp.add(new Neighbor(targetId, score));
+        }
         
-        LongDoublePair[] retval = getDistances(id, getSimilars(id, beamRadius, numPermutations), minScore);
-        if (retval != null) Arrays.sort(retval, new LongDoublePair.DescendingDComparator());
-        return retval;
+        Neighbor [] neighbors = tmp.toArray(new Neighbor[tmp.size()]);
+        if (neighbors != null) Arrays.sort(neighbors, comparator);
+        
+        if (maxNeighbors != Integer.MAX_VALUE) {
+        	Neighbor [] topNeighbors = new Neighbor[maxNeighbors];
+        	for (int i = 0; i < maxNeighbors; i++) {
+        		topNeighbors[i] = neighbors[i];
+        	}
+        	return topNeighbors;
+        }
+        else
+        	return neighbors;
     }
 
     /**
@@ -211,29 +209,31 @@ public class NearestNeighborSearcher
         .addOption(new RequiredOption("o", true, "output file"))
         .addOption(new RequiredOption("b", true, "beamwidth to search for within sorted bitset arrays"))
         .addOption(new RequiredOption("p", true, "number of permutations to use in getting similars"))        
-        .addOption(new RequiredOption("m", true, "minimum cosine similarity to take (-1 will take anything)")).parse(args);
+        .addOption(new RequiredOption("t", true, "threshold for similarity/dissimilarity")).parse(args);
         
         NearestNeighborSearcher searcher = new NearestNeighborSearcher(cmd.getOptionValue("idx"));
         int beamWidth = Integer.parseInt(cmd.getOptionValue("b"));
-        double minScore = Double.parseDouble(cmd.getOptionValue("m"));
+        double minSimilarity = Double.parseDouble(cmd.getOptionValue("t"));
         int numPermutations = Integer.parseInt(cmd.getOptionValue("p"));
         
         long [] targetIds = getTargetIds(cmd.getOptionValue("i"));
-        TLongObjectHashMap<LongDoublePair []> allSims = new TLongObjectHashMap<LongDoublePair []>();
+        TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
 
+        Comparator<Neighbor> comparator = new Neighbor.DissimilarityComparator();
+        ScoreThreshold thresh = new L2Threshold(minSimilarity);
         for(long id : targetIds)
         {
-            LongDoublePair [] sims = searcher.getScoredSimilars(id, beamWidth, numPermutations, minScore);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, numPermutations, -1, comparator, thresh);
             if(sims != null) allSims.put(id, sims);
         }
         BufferedWriter writer = new BufferedWriter(new FileWriter(cmd.getOptionValue("o")));
-        TLongObjectIterator<LongDoublePair []> ids = allSims.iterator();
+        TLongObjectIterator<Neighbor []> ids = allSims.iterator();
         while(ids.hasNext()) {
         	ids.advance();
         	long id = ids.key();
         	writer.write(id + "\n--------------\n");
-        	LongDoublePair [] sims = allSims.get(id);
-        	for(LongDoublePair similar : sims) writer.write(similar.l + "," + similar.d + "\n");
+        	Neighbor [] sims = allSims.get(id);
+        	for(Neighbor similar : sims) writer.write(similar.id + "," + similar.score + "\n");
         	writer.write("\n\n");
         }
         writer.flush();

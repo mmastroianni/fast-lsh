@@ -3,13 +3,12 @@ package org.fastlsh.index;
 import java.io.File;
 import java.io.IOException;
 
-import org.fastlsh.hash.HashFactory;
 import org.fastlsh.hash.HashFamily;
 
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -68,7 +67,7 @@ public class TestMultiVsSingleThreaded
         IndexOptions options = new IndexOptions();
         options.numHashes = numHashes;
         options.vectorDimension = numFeatures;
-        options.hashFamily = new HashFamily( HashFactory.makeProjectionHashFamily(options.vectorDimension, options.numHashes));
+        options.hashFamily = HashFamily.getCosineHashFamily(options.vectorDimension, options.numHashes);
 
         VectorParser<String> parser = new CSVParser(",");
 
@@ -83,8 +82,8 @@ public class TestMultiVsSingleThreaded
         reader2.initializeSignatures();
         reader2.initializeRawVecs();
 
-        BitSetWithId[] sigs1 = reader1.signatures;
-        BitSetWithId[] sigs2 = reader2.signatures;
+        Signature[] sigs1 = reader1.signatures;
+        Signature[] sigs2 = reader2.signatures;
         Assert.assertEquals(numRows, sigs1.length);
         Assert.assertEquals(sigs1.length, sigs2.length);
         Assert.assertTrue(IndexUtils.areSame(sigs1, sigs2));

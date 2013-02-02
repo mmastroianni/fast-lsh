@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapile (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -32,19 +32,22 @@ public class L2Hash implements HashFunction, Serializable
     double offset;
     double binWidth;
     
-    public L2Hash(int dimension) {
-        this(dimension, new Random());
-    }
-    
     public L2Hash(int dimension, Random rand) {
         projection = new double[dimension];
         for (int i = 0; i < dimension; i++) {
         	projection[i] = rand.nextGaussian();
         }
+        
+        offset = rand.nextDouble();  // change this to user-defined?
+        binWidth = 0.2;  // change this to user-defined?
+    }
+    
+    public L2Hash(int dimension) {
+        this(dimension, new Random());
     }
 
     @Override
     public boolean hash(VectorWithId input) {
-    	return ( ((input.dotProduct(projection) - offset) / binWidth) % 2 ) == 0;
+    	return ( (int) ((input.dotProduct(projection) - offset) / binWidth) % 2 ) == 0;
     }
 }

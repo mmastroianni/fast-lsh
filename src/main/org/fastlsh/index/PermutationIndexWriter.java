@@ -9,10 +9,10 @@ import java.util.Arrays;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
-import org.fastlsh.util.BitSetWithId;
+import org.fastlsh.util.Signature;
 import org.fastlsh.util.FileUtils;
 import org.fastlsh.util.LexicographicBitSetComparator;
-import org.fastlsh.util.LongStoreReader;
+import org.fastlsh.util.LongStoreReaderDisk;
 import org.fastlsh.util.OutputAlreadyExistsException;
 import org.fastlsh.util.Permuter;
 
@@ -20,12 +20,12 @@ public class PermutationIndexWriter
 {
     String topLevelIndexDir;
     String rootDir;
-    BitSetWithId [] signatures;
+    Signature [] signatures;
     int numPermutations;
     Permuter permuter;
     TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
 
-    public PermutationIndexWriter(String indexDir, BitSetWithId [] signatures, IndexOptions options) throws OutputAlreadyExistsException
+    public PermutationIndexWriter(String indexDir, Signature [] signatures, IndexOptions options) throws OutputAlreadyExistsException
     {
         topLevelIndexDir = indexDir;
         File rootDirHandle = new File(topLevelIndexDir, Constants.permutations);
@@ -47,13 +47,13 @@ public class PermutationIndexWriter
     
     protected void initializeMap()
     {
-        for(BitSetWithId sig: signatures) permutationIndex.put(sig.id, new int[numPermutations]);
+        for(Signature sig: signatures) permutationIndex.put(sig.id, new int[numPermutations]);
     }
     
     protected void serializePermutationIndex(int idx, long [] values) throws IOException
     {
         File tmp = new File(rootDir, Constants.permutationHead + idx);
-        LongStoreReader.createLongStore(values, tmp.getAbsolutePath());
+        LongStoreReaderDisk.createLongStore(values, tmp.getAbsolutePath());
     }
     
     protected void serializeIdMap() throws OutputAlreadyExistsException, FileNotFoundException, IOException
@@ -65,16 +65,16 @@ public class PermutationIndexWriter
        oos.close();
     }
     
-    public static void permute(Permuter p, BitSetWithId [] sigs)
+    public static void permuteAndSort(Permuter p, Signature [] sigs)
     {
         p.reset();
-        for(int i = 0, max = sigs.length; i < max; i++) sigs[i] = new BitSetWithId(sigs[i].id, p.permute(sigs[i].bits));
+        for(int i = 0, max = sigs.length; i < max; i++) sigs[i] = new Signature(sigs[i].id, p.permute(sigs[i].bits));
         Arrays.sort(sigs, new LexicographicBitSetComparator());
     }
 
     protected void createPermutationIndex(int permId) throws IOException
     {
-        permute(permuter, signatures);
+        permuteAndSort(permuter, signatures);
         long [] ids = new long [signatures.length];
         for(int i = 0, m = signatures.length; i < m; i++)
         {

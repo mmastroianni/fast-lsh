@@ -1,6 +1,11 @@
 package org.fastlsh.index;
 
+import gnu.trove.iterator.TLongObjectIterator;
+import gnu.trove.map.hash.TLongObjectHashMap;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.util.Comparator;
 
 import junit.framework.Assert;
@@ -9,18 +14,18 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.query.NearestNeighborSearcher;
-import org.fastlsh.threshold.L2Threshold;
+import org.fastlsh.threshold.CosineSimilarityThreshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
 import org.junit.Test;
 
-public class TestSmallEnd2End
+public class TestCosine
 {
     String input;
     String output      = "/home/akapila/Desktop/lsh/cosine";
     int    numHashes   = 128;
     int    numFeatures = 50;
-    int    numRows     = 100;
+    int    numRows     = 10000;
 
     @Test
     public void test() throws Exception
@@ -28,7 +33,7 @@ public class TestSmallEnd2End
         IndexUtils.delete(new File(output));       
         File tmp = File.createTempFile("test_vector_data", "dat");
         input = tmp.getAbsolutePath();
-        tmp.delete();
+//        tmp.delete();
 
         GenerateRandomCSVInputs.generateTestFile(numFeatures, numRows, input);
 
@@ -47,18 +52,34 @@ public class TestSmallEnd2End
         idxReader = null;
         NearestNeighborSearcher searcher = new NearestNeighborSearcher(output);
         int beamWidth = 10;
-        double minScore = .7;
+        double minSimilarity = 0.2;
         long [] targetIds = new long []{1,2,3,4,5,6,7,8,9};
 
-        Comparator<Neighbor> comparator = new Neighbor.DissimilarityComparator();
-        ScoreThreshold thresh = new L2Threshold(minScore);
+        Comparator<Neighbor> comparator = new Neighbor.SimilarityComparator();
+        ScoreThreshold thresh = new CosineSimilarityThreshold(minSimilarity);
+        TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
         for(long id : targetIds)
         {
-            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, -1, comparator, thresh);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, Integer.MAX_VALUE, comparator, thresh);
+            if(sims != null) allSims.put(id, sims);
             Assert.assertTrue(containsId(id, sims));
         }
 
-        IndexUtils.delete(new File(input));
+//        IndexUtils.delete(new File(input));
+        System.out.println("input: " + input);
+        
+        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(output, "results.txt")));
+        TLongObjectIterator<Neighbor []> ids = allSims.iterator();
+        while(ids.hasNext()) {
+        	ids.advance();
+        	long id = ids.key();
+        	writer.write(id + "\n--------------\n");
+        	Neighbor [] sims = allSims.get(id);
+        	for(Neighbor similar : sims) writer.write(similar.id + "," + similar.score + "\n");
+        	writer.write("\n\n");
+        }
+        writer.flush();
+        writer.close();
     }
 
     public static boolean containsId(long id, Neighbor[] sims)

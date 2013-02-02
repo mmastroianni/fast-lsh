@@ -13,7 +13,7 @@ Our implementation is divided into two parts, and indexer and a searcher.
 
 Indexing
 ----------------------
-
+Note: When using cosine similarity, one must input vectors whose Euclidean norm is 1.
 
 
 Searching

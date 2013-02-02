@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.fastlsh.util.BitSet;
-import org.fastlsh.util.BitSetWithId;
-import org.fastlsh.util.LongStoreReader;
+import org.fastlsh.util.Signature;
+import org.fastlsh.util.LongStoreReaderDisk;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
@@ -24,13 +24,13 @@ import gnu.trove.map.hash.TLongObjectHashMap;
  */
 public class IndexReader
 {
-    TLongObjectHashMap<BitSet> sigMap;
-    BitSetWithId [] signatures;
-    TLongObjectHashMap<double []> rawVectorMap;
-    TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
-    IndexOptions options;
-    String rootDir;
-    LongStoreReader [] permutationLists;
+	public TLongObjectHashMap<BitSet> sigMap;
+    public Signature [] signatures;
+    public TLongObjectHashMap<double []> rawVectorMap;
+    public  TLongObjectHashMap<int []> permutationIndex = new TLongObjectHashMap<int []> ();
+    public IndexOptions options;
+    public String rootDir;
+    public LongStoreReaderDisk [] permutationLists;
 
     public IndexReader(String rootDir)
     {
@@ -57,7 +57,7 @@ public class IndexReader
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    protected void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
+    public void initializeOptions() throws FileNotFoundException, IOException, ClassNotFoundException
     {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(rootDir, Constants.options)));
         options = (IndexOptions) ois.readObject();
@@ -71,8 +71,8 @@ public class IndexReader
      */
     public void initializeRawVecs() throws InvalidIndexException, IOException
     {
-        File rawDir = new File(rootDir, Constants.normalizedVectors);
-        if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Normalized Vectors file not present in this index"));
+        File rawDir = new File(rootDir, Constants.inputData);
+        if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Data file not present in this index."));
         rawVectorMap = new TLongObjectHashMap<double []>();
 
         if(rawDir.isDirectory())
@@ -130,11 +130,11 @@ public class IndexReader
         });
         if(perms.length != options.numPermutations) throw(new InvalidIndexException(rootDir, "Expected " + options.numPermutations + " permutation lists, but found " + perms.length)); 
         Arrays.sort(perms);
-        permutationLists = new LongStoreReader [options.numPermutations];
+        permutationLists = new LongStoreReaderDisk [options.numPermutations];
         for(int i = 0; i < options.numPermutations; i++)
         {
             String permName = perms[i];
-            permutationLists[i] = new LongStoreReader(new File(rawDir, permName).getAbsolutePath());
+            permutationLists[i] = new LongStoreReaderDisk(new File(rawDir, permName).getAbsolutePath());
         }
     }
     
@@ -162,14 +162,14 @@ public class IndexReader
         File rawDir = new File(rootDir, Constants.signatures);
         if(!rawDir.exists()) throw(new InvalidIndexException(rootDir, "Signatures file not present in this index"));
         sigMap = new TLongObjectHashMap<BitSet>();
-        ArrayList<BitSetWithId> tempSigs = new ArrayList<BitSetWithId>();
+        ArrayList<Signature> tempSigs = new ArrayList<Signature>();
         if(rawDir.isDirectory())
         {
             File[] files = rawDir.listFiles();
             for(File f : files) initializeSignatures(f.getAbsolutePath(), tempSigs);            
         }
         else initializeSignatures(rawDir.getAbsolutePath(), tempSigs);
-        signatures = tempSigs.toArray(new BitSetWithId[tempSigs.size()]);
+        signatures = tempSigs.toArray(new Signature[tempSigs.size()]);
     }
 
     /**
@@ -178,16 +178,16 @@ public class IndexReader
      * @throws IOException
      */
 
-    private void initializeSignatures(String file, ArrayList<BitSetWithId> tempSigs) throws IOException
+    private void initializeSignatures(String file, ArrayList<Signature> tempSigs) throws IOException
     {
         ObjectInputStream ois = null;
         try
         {
             ois = new ObjectInputStream(new FileInputStream(file));
-            BitSetWithId sig = null;
+            Signature sig = null;
             do
             {
-                sig = (BitSetWithId) ois.readObject();
+                sig = (Signature) ois.readObject();
                 tempSigs.add(sig);
                 sigMap.put(sig.id, sig.bits);
             }while(sig != null);

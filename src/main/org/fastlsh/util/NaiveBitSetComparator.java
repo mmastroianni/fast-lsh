@@ -1,5 +1,5 @@
 /*
-   Copyright 2012 Michael Mastroianni, Amol Kapila (fastlsh.org)
+   Copyright 2012 Michael Mastroianni, Amol Kapila, Ryan Berdeen (fastlsh.org)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -12,14 +12,23 @@
     See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.fastlsh.hash;
+package org.fastlsh.util;
 
-import java.io.Serializable;
+import java.util.Comparator;
 
-import org.fastlsh.index.VectorWithId;
-
-
-public interface HashFunction extends Serializable
+public class NaiveBitSetComparator implements Comparator<Signature>
 {
-    public abstract boolean hash(VectorWithId input);
+    @Override
+    public int compare(Signature bs1, Signature bs2)
+    {
+        BitSet bitset1 = bs1.bits;
+        BitSet bitset2 = bs2.bits;
+    	for (int i = 0; i < 127; i++) {
+    		if (bitset1.get(i) && !bitset2.get(i))
+    			return 1;
+    		else if (!bitset1.get(i) && bitset2.get(i))
+    			return -1;
+    	}
+    	return 0;
+    }
 }
