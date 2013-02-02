@@ -1,10 +1,8 @@
 package org.fastlsh.index;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
@@ -56,14 +54,6 @@ public class PermutationIndexWriter
     {
         File tmp = new File(rootDir, Constants.permutationHead + idx);
         LongStoreReaderDisk.createLongStore(values, tmp.getAbsolutePath());
-        
-        tmp = new File(rootDir, "textPerms" + idx + ".txt");
-        BufferedWriter textWriter = new BufferedWriter(new FileWriter(tmp));
-        for (int i = 0, max = values.length; i < max; i++) {
-        	textWriter.write(values[i] + "," + signatures[i] + "\n");
-        }
-        textWriter.flush();
-        textWriter.close();
     }
     
     protected void serializeIdMap() throws OutputAlreadyExistsException, FileNotFoundException, IOException

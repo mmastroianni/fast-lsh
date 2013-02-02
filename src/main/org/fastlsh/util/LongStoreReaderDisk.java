@@ -2,6 +2,7 @@ package org.fastlsh.util;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 public class LongStoreReaderDisk extends LongStoreReader
 {
@@ -15,7 +16,7 @@ public class LongStoreReaderDisk extends LongStoreReader
     
     public synchronized long get(long pos) throws IOException 
     {
-        file.seek(++pos * sizeofLong);
+        file.seek(++pos * sizeOfLong);
         return file.readLong();
     }
     
@@ -23,8 +24,13 @@ public class LongStoreReaderDisk extends LongStoreReader
     {
         int numLongs = (int) (end-start);
         long [] vals = new long[numLongs];
-        file.seek(++start* sizeofLong);
-        for(int i = 0; i < numLongs; i++ ) vals[i] = file.readLong();
+        file.seek(++start* sizeOfLong);
+        byte [] bytes = new byte[numLongs * sizeOfLong];
+        file.read(bytes);
+        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+        buffer.put(bytes, 0, bytes.length);
+        buffer.flip();
+        for(int i = 0; i < numLongs; i++ ) vals[i] = buffer.getLong();
         return vals;
     }
     

@@ -2,10 +2,10 @@ package org.fastlsh.threshold;
 
 import org.fastlsh.util.MathFns;
 
-public class CosineThreshold implements ScoreThreshold {
+public class CosineSimilarityThreshold implements ScoreThreshold {
 	private double threshold;
 	
-	public CosineThreshold(double threshold) {
+	public CosineSimilarityThreshold(double threshold) {
 		if (threshold < -1 || threshold > 1)
 			throw new RuntimeException("Threshold needs to be between -1 and 1, inclusive.");
 		this.threshold = threshold;

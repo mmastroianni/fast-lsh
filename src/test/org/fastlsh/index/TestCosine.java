@@ -14,7 +14,7 @@ import org.fastlsh.hash.HashFamily;
 import org.fastlsh.parsers.CSVParser;
 import org.fastlsh.parsers.VectorParser;
 import org.fastlsh.query.NearestNeighborSearcher;
-import org.fastlsh.threshold.CosineThreshold;
+import org.fastlsh.threshold.CosineSimilarityThreshold;
 import org.fastlsh.threshold.ScoreThreshold;
 import org.fastlsh.util.Neighbor;
 import org.junit.Test;
@@ -56,11 +56,11 @@ public class TestCosine
         long [] targetIds = new long []{1,2,3,4,5,6,7,8,9};
 
         Comparator<Neighbor> comparator = new Neighbor.SimilarityComparator();
-        ScoreThreshold thresh = new CosineThreshold(minSimilarity);
+        ScoreThreshold thresh = new CosineSimilarityThreshold(minSimilarity);
         TLongObjectHashMap<Neighbor []> allSims = new TLongObjectHashMap<Neighbor []>();
         for(long id : targetIds)
         {
-            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, -1, comparator, thresh);
+            Neighbor [] sims = searcher.getScoredNeighbors(id, beamWidth, options.numPermutations, Integer.MAX_VALUE, comparator, thresh);
             if(sims != null) allSims.put(id, sims);
             Assert.assertTrue(containsId(id, sims));
         }

@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public abstract class LongStoreReader {
-    protected static final int sizeofLong = 8;
+    protected static final int sizeOfLong = 8;
     protected static final String mode = "r";
 
     protected String fileName;

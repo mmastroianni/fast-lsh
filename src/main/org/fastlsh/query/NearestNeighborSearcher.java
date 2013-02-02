@@ -116,6 +116,11 @@ public class NearestNeighborSearcher
         output.addAll(ids);
     }
     
+    public Neighbor [] getScoredNeighbors(long srcId, int beamRadius, int numPermutations,
+    		Comparator<Neighbor> comparator, ScoreThreshold scoreThresh) throws InvalidIndexException, IOException {
+    	return getScoredNeighbors(srcId, beamRadius, numPermutations, Integer.MAX_VALUE, comparator, scoreThresh);
+    }
+    
     /**
      * Get list of similar items for input within beamRadius in first numPermutations permutation lists which have a similarity score 
      * >= minScore 
@@ -148,7 +153,7 @@ public class NearestNeighborSearcher
         Neighbor [] neighbors = tmp.toArray(new Neighbor[tmp.size()]);
         if (neighbors != null) Arrays.sort(neighbors, comparator);
         
-        if (maxNeighbors != -1) {
+        if (maxNeighbors != Integer.MAX_VALUE) {
         	Neighbor [] topNeighbors = new Neighbor[maxNeighbors];
         	for (int i = 0; i < maxNeighbors; i++) {
         		topNeighbors[i] = neighbors[i];
